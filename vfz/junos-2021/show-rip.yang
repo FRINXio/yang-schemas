@@ -1,0 +1,230 @@
+/*
+ * Copyright (c) 2021 Juniper Networks, Inc.
+ * All rights reserved.
+ */
+
+// FRINX change show-rip to submodule  belongs to show-ipv6
+ submodule show-rip {
+  belongs-to show-ipv6 {
+    prefix "jrpc";
+  }
+
+  import junos-extension {
+    prefix junos;
+  }
+
+  // FRINX add operation types
+  import operation_types {
+    prefix "operation_type";
+  }
+
+  organization
+    "Juniper Networks, Inc.";
+
+  description
+    "Junos YANG module for RPC";
+
+
+      // Frinx delete typedef which are imported from operation_types
+
+   rpc get-rip-statistics-information {
+     description "Show RIP statistics";
+     input {
+       leaf logical-system {
+         description "Name of logical system, or 'all'";
+         type string {
+           junos:posix-pattern "^[a-zA-Z0-9_-]{1,63}$";
+           junos:pattern-message "Logical-system name is a string consisting of up to 63 letters, numbers, dashes and underscores";
+         }
+       }
+       leaf neighbor-name {
+         description "Name of RIP neighbor";
+         type string;
+       }
+       leaf instance {
+         description "Name of RIP instance";
+         type string;
+       }
+     }
+     output {
+       container rip-statistics-information {
+         container rip-timer-values {
+           description "Information about RIP timer values";
+           leaf rip-protocol-name {
+             type string;
+             description "Protocol name";
+           }
+           leaf rip-port {
+             type int32;
+             description "Port on which the protocol is running";
+           }
+           leaf rip-holddown {
+             type int32;
+             description "Value of the hold-down timer";
+           }
+         }
+         container rip-restart-values {
+           description "Information about RIP restart values";
+           leaf rip-restart-state {
+             type string;
+             description "Indicates if graceful restart is in progress";
+           }
+           leaf rip-restart-time {
+             type int32;
+             description "Restart time locally configured";
+           }
+           leaf rip-restart-timeout {
+             type int32;
+             description "Time after which graceful restart is complete";
+           }
+         }
+         container rip-global-statistics {
+           description "RIP global statistics";
+           leaf rip-routes-learned {
+             type int32;
+             description "Number of routes learned";
+           }
+           leaf rip-routes-holddown {
+             type int32;
+             description "Number of routes in hold-down state";
+           }
+           leaf rip-requests-dropped {
+             type int32;
+             description "Number of requests dropped";
+           }
+           leaf rip-responses-dropped {
+             type int32;
+             description "Number of responses dropped";
+           }
+         }
+         container rip-neighbor-statistics {
+           description "RIP neighbor statistics";
+           leaf rip-neighbor-name {
+             type string;
+             description "Neighbor name";
+           }
+           leaf rip-neighbor-learnt-routes {
+             type int32;
+             description "Number of routes learned by this neighbor";
+           }
+           leaf rip-neighbor-advertised-routes {
+             type int32;
+             description "Number of routes advertised by this neighbor";
+           }
+           leaf rip-neighbor-route-timeout {
+             type int32;
+             description "Timeout value for routes learned from this neighbor";
+           }
+           leaf rip-neighbor-update-interval {
+             type int32;
+             description "Value of update interval timer for this neighbor";
+           }
+           container rip-message-statistics {
+             leaf rip-message {
+               type string;
+             }
+             leaf rip-message-total {
+               type int32;
+               description "Total number of messages";
+             }
+             leaf rip-message-last-5minutes {
+               type int32;
+               description "Number of messages in the last 5 minutes";
+             }
+             leaf rip-message-last-minute {
+               type int32;
+               description "Number of messages in the last minute";
+             }
+           }
+         }
+       }
+     }
+   }
+   rpc get-rip-peer-information {
+     description "Show peer statistics";
+     input {
+       leaf logical-system {
+         description "Name of logical system, or 'all'";
+         type string {
+           junos:posix-pattern "^[a-zA-Z0-9_-]{1,63}$";
+           junos:pattern-message "Logical-system name is a string consisting of up to 63 letters, numbers, dashes and underscores";
+         }
+       }
+       leaf address {
+         description "Ip address of peer";
+         type string;
+       }
+       leaf peer-all {
+         description "Show statistics of all peers";
+         type enumeration {
+           enum "all" {
+             description "Show statistics of all peers";
+           }
+         }
+       }
+     }
+   }
+   rpc get-rip-general-statistics-information {
+     description "Show RIP general statistics";
+     input {
+       leaf logical-system {
+         description "Name of logical system, or 'all'";
+         type string {
+           junos:posix-pattern "^[a-zA-Z0-9_-]{1,63}$";
+           junos:pattern-message "Logical-system name is a string consisting of up to 63 letters, numbers, dashes and underscores";
+         }
+       }
+     }
+     output {
+       container rip-general-statistics-information {
+         container rip-general-statistics {
+           leaf rip-protocol-name {
+             type string;
+             description "Protocol name";
+           }
+           leaf rip-bad-messages {
+             type int32;
+             description "Number of bad messages";
+           }
+           leaf rip-interface-count {
+             type int32;
+             description "Number of receiving interfaces";
+           }
+           leaf rip-current-memory {
+             type int32;
+             description "Memory currently in use";
+           }
+           leaf rip-maximum-memory {
+             type int32;
+             description "Maximum memory ever used";
+           }
+         }
+       }
+     }
+   }
+   rpc get-rip-neighbor-information {
+     description "Show RIP interfaces";
+     input {
+       leaf logical-system {
+         description "Name of logical system, or 'all'";
+         type string {
+           junos:posix-pattern "^[a-zA-Z0-9_-]{1,63}$";
+           junos:pattern-message "Logical-system name is a string consisting of up to 63 letters, numbers, dashes and underscores";
+         }
+       }
+       leaf neighbor-name {
+         description "Name of RIP neighbor";
+         type string;
+       }
+       leaf instance {
+         description "Name of RIP instance";
+         type string;
+       }
+     }
+     // FRINX change output to anyxml rip-neighbor-information-all from rip-neighbor-information
+     output {
+          anyxml rip-neighbor-information-all;
+ 
+     }
+   }
+ }
