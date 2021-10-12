@@ -1,0 +1,163 @@
+module casa-ip-route {
+    yang-version 1;
+  
+    namespace "urn:casa:params:xml:ns:yang:casa-ip-route"; 
+    prefix "ip-route";
+
+    import ietf-inet-types {
+        prefix "inet";
+    }
+
+    organization "Casa Systems Inc";
+
+    contact 
+        "Casa Systems Inc.     
+         100 Old River Road, Suite 100             
+         Andover, MA 01810      
+         TEL: +1 978 688 6706      
+         FAX: +1 978 688 6584        
+         E-mail: support@casa-systems.com";
+    
+    description
+        "CASA ip route Configuration";
+
+    revision "2019-07-08" {
+        description "Initial version";
+    }	
+	
+	typedef Ipv4-Next-Hop-Type {
+		type union {
+			type enumeration {
+				enum null0;
+			}
+			type inet:ipv4-address;
+		}
+	}
+	
+	typedef Ipv6-Next-Hop-Type {
+		type union {
+			type enumeration {
+				enum null0;
+			}
+			type inet:ipv6-address;
+		}
+	}	
+	
+	grouping ipv4-route-group{
+		list ipv4-route{
+			description "ip static route without VRF";
+			key "network next-hop distance tag";
+			leaf network{
+				type inet:ipv4-prefix;
+				description "network ip address";
+			}
+			leaf next-hop{
+				type Ipv4-Next-Hop-Type;
+				description "next-hop ip addres";
+			}
+			leaf distance{
+				type uint8 {
+					range "1..255";
+				}
+			}
+			leaf tag{
+				type uint32;
+			}
+			leaf description{
+				type string;
+			}		
+		}						
+	}
+	
+	grouping ipv6-route-group{
+		list ipv6-route{
+			description "ip static route without VRF";
+			key "network next-hop distance";
+			leaf network{
+				type inet:ipv6-prefix;
+				description "network ip address";
+			}
+			leaf next-hop{
+				type Ipv6-Next-Hop-Type;
+				description "next-hop ip addres";
+			}
+			leaf distance{
+				type uint8 {
+					range "1..255";
+				}
+			}		
+		}						
+	}	
+	grouping ipv4-route-vrf-group{
+		list ipv4-route-vrf{
+			description "ip static route with VRF";
+			key "vrf network next-hop gw-vrf distance tag";
+			leaf vrf{
+				type string;
+			}
+			leaf network{
+				type inet:ipv4-prefix;
+				description "network ip address";
+			}
+			leaf next-hop{
+				type Ipv4-Next-Hop-Type;
+				description "next-hop ip addres";
+			}
+			leaf gw-vrf{
+				type string;
+				description "gateway VRF";
+			}
+			leaf distance{
+				type uint8 {
+					range "1..255";
+				}
+			}
+			leaf tag{
+				type uint32;
+			}
+			leaf description{
+				type string;
+			}
+		}							
+	}
+	grouping ipv6-route-vrf-group{
+		list ipv6-route-vrf{
+			description "ip static route with VRF";
+			key "vrf network next-hop gw-vrf distance";
+			leaf vrf{
+				type string;
+			}
+			leaf network{
+				type inet:ipv6-prefix;
+				description "network ip address";
+			}
+			leaf next-hop{
+				type Ipv6-Next-Hop-Type;
+				description "next-hop ip addres";
+			}
+			leaf gw-vrf{
+				type string;
+				description "gateway VRF";
+			}
+			leaf distance{
+				type uint8 {
+					range "1..255";
+				}
+			}
+		}							
+	}	
+
+    container casa-ip-route{
+        description 
+            "This object configures ip static route.";
+		container ip-route-config{
+			uses  ipv4-route-group;	
+			uses  ipv6-route-group;	
+		}	
+		container ip-route-vrf-config{
+			uses  ipv4-route-vrf-group;
+			uses  ipv6-route-vrf-group;
+		}			
+    }
+
+}

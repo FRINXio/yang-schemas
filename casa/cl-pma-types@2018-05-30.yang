@@ -1,0 +1,619 @@
+module cl-pma-types {
+
+	  namespace "urn:cablelabs:params:xml:ns:yang:cl-pma-types";
+	  prefix cl-pma;
+	
+	  // import types
+	  import ietf-yang-types        { prefix "yang";}
+	 
+	  organization "Cable Television Laboratories, Inc.";
+	  contact " 
+				   E-mail:  mibs@cablelabs.com
+				   Phone: +1 303-661-9100
+			       Fax:   +1 303-661-9199
+				   Postal: Cable Television Laboratories, Inc.
+			       858 Coal Creek Circle, Louisville, Colorado 80027-9750 U.S.A. 
+		 	 	   Authors:  Karthik Sundaresan, Jason Schnitzer, Jeff Dement        ";
+	    
+	  description   "This module contains a collection of YANG types (C) 2017-2018. CableLabs";
+	  
+	  revision "2018-05-30" { description  "Initial Release version";}
+	
+
+	//--------------------------------------------------------
+	//---------- Types ----------
+ 
+
+	 // Global typedefs
+	
+	 typedef ofdm-profile-index {
+	   type uint8 {  range "0..15|255";}
+	   description "A unique downstream OFDM profile index. CCAP vendors may auto-configure profiles. 
+	      Profile 255 (NCP Profile) is restricted to qpsk, qam16, or qam64 for default modulation and to zero-bit-load for profile exceptions.";
+	 }  
+	
+	 typedef channel-index {
+	   type uint64;
+	   description    "Describes a  channel IfIndex  unqiue to a CCAP.";
+	 }  
+	 
+	 typedef ofdma-iuc-index {
+			   type uint8 { range "1..15";}
+			   description "A unique upstream OFDMA IUC index. CCAP vendors may auto-configure profiles. 
+			      Profile/IUC 1-4 are for Request and Ranging , 7 is Null, 8,14 is Reserved,  15 is expansion IUC
+				  Data IUCs are 5,6,9,10,11,12,13.";
+	  } 
+			 
+
+		
+	 identity ccap-context {
+	   description  "Identity used to mark ccap context.";
+	 }
+	
+	 typedef status-string {
+	   type string;   description "Return status for RPC output.";
+	 }  
+	 typedef status-type {
+		    type enumeration {
+		        enum other   { value 0; }
+		        enum down    { value 1; }
+		        enum up      { value 2; }
+		        enum success { value 3; }
+		        enum fail    { value 4; }
+		        enum offline { value 5; }
+		        enum online  { value 6; }
+		        enum pending { value 7; }
+		    }
+	  }
+
+	  typedef subcarrier-type {
+		    type enumeration {
+		    	enum data       {value 0;}
+				enum cont-pilot {value 1;}
+				enum excluded   {value 2;}
+				enum plc        {value 3;}
+				enum unused     {value 4;}
+			}
+	  }
+	  
+	  typedef modulation-type {
+		    type enumeration {
+				enum zero-bit-loaded {value 0;}
+				enum other {value 3;}
+				enum bpsk{value 1;}
+				enum qpsk{value 2;}
+				enum qam16{value 4;}
+				enum qam64{value 6;}
+				enum qam128{value 7;}
+				enum qam256{value 8;}
+				enum qam512{value 9;}
+				enum qam1024{value 10;}
+				enum qam2048{value 11;}
+				enum qam4096{value 12;}
+				enum qam8192{value 13;}
+				enum qam16384{value 14;}
+			}
+	    }
+	  
+		 typedef rpc-transction-id-type {
+			   type uint64;
+			   description "A unique RPC trancsction ID genereated by the CMTS and returned to the PMA when the RPC returns.";
+	  } 
+
+ 
+	//--------------------------------------------------------  DS -------------
+	//-------------------------------------------------------- **** -------------
+
+	  
+	  grouping ds-channel {
+		    description "Each ds-attributes has:
+		       				1. A list of downstream OFDM Channels (with the OFDM profiles assigned to it.
+								- A list of CMs on the channel 
+								2. For each channel A list of downstream OFDM Profiles with bitloadng configuration.
+								- A list of CMs assigned to the profile ";
+
+      		list ds-ofdm-channel {
+					description  "A single Downstream OFDM channel on this CCAP with its profiles .";
+					key "IfIndex";
+
+					uses cl-pma:ds-ofdm-channel-attributes;
+
+					leaf-list channel-cm-list { type yang:mac-address;  description  "list of CMs on channel"; }
+                    
+    	     		list ds-ofdm-profile {
+							description "A list of all downstream OFDM profiles and their configurations on this CCAP.";
+							min-elements 0; max-elements 17;
+							key "profile-index";
+							
+							uses cl-pma:ds-ofdm-profile-attributes;
+							
+                            leaf-list profile-cm-list { type yang:mac-address; description  "list of CMs assigned to profile";  }
+					 }
+			  } 
+      }
+	  
+	  grouping ds-ofdm-channel-attributes {
+	        description "DS OFDM channel parameters.";	  	  
+      	    leaf IfIndex                     {type channel-index; description "InterfaceIndex of the channel"; }
+			container ofdm-channel-attr {
+				  leaf ChannelId                   {type uint16; description "Channel Id within MAC domain";} 
+				  leaf AdminState                  {type uint64; description "AdminStatusType";}
+				  leaf LowerBdryFreq               {type uint32{range "108000000..1777000000";} description "Hz"; }
+				  leaf UpperBdryFreq               {type uint32{range "132000000..1794000000";} description "Hz"; }
+				  leaf LowerBdryFreqEncompSpectrum {type uint32{range "108000000..1777000000";} description "Hz"; }
+				  leaf UpperBdryFreqEncompSpectrum {type uint32{range "132000000..1794000000";} description "Hz";		  }
+				  leaf FirstActiveSubcarrierNum    {type uint16{range "148..7895";} description "Subcarrier Number"; }
+				  leaf LastActiveSubcarrierNum     {type uint16{range "148..7895";} description " Hz";  }
+				  leaf NumActiveSubcarriers        {type uint16{range "1..7600";}  }
+				  leaf PlcFreq					   {type uint32{range "108000000..1777000000";} description "Hz"; }
+				  leaf SubcarrierZeroFreq	       {type uint32{range "16600000..1104600000";} description "Hz"; }
+				  leaf SubcarrierSpacing	       {type uint8{range "25 | 50";}               description "50 Khz - 4K FFT,  25 KHz 8K FFT ";} 
+				  leaf LowerGuardbandWidth		   {type uint32{range "1000000..1777000000";} description "Hz"; }
+				  leaf UpperGuardbandWidth	       {type uint32{range "1000000..1777000000";} description "Hz"; }
+				  leaf CyclicPrefix	               {type uint16{range "192 | 256 | 512 | 768 | 1024";} description "Cyclic Prefix Samples (Ncp) ";} 
+				  leaf RolloffPeriod               {type uint16{range "0 | 64 | 128 | 192 | 256";}     description "Roll-Off Period Samples (Nrp) ";} 
+				  leaf TimeInterleaverDepth        {type uint8{range "1..32";}   description "Interleaver M";}
+				  leaf NumPilots     			   {type uint16;                 description "pilots";} 
+				  leaf PilotScaleFactor            {type uint8{range "48..120";} description "scale";}
+				  leaf NcpModulation     	       {type uint8{range "2..6";}    description "qpsk(2), qam16(4), qam64(6) ";}	
+				  leaf OfdmChannelUtilization      {type uint8{range "0..100";}  description "Percentage ";}	
+				  leaf PowerAdjust                 {type uint16;                 description "tenth DB";} 
+		     	  list ds-subcarrier-defn {
+					 			description "A list of OFDM subcarrier descriptions.";
+								key "StartSubcarrierId";
+								leaf StartSubcarrierId { type uint16; }
+				                leaf EndSubcarrierId   { type uint16; }
+					            leaf SubcarrierDefn    { type subcarrier-type; } 
+							}
+			      }	
+	  }
+	  
+	  
+
+
+      grouping ds-ofdm-profile-attributes {
+              description "Bit load configuration of a single downstream ofdm profile.";
+              leaf profile-index { type ofdm-profile-index; }
+              leaf ofdm-modulation-default {
+	                description  "Default modulation assigned to all subcarriers in the profile.";
+	                type modulation-type;
+	                
+              }
+              list subcarrier-config {
+	                description
+	                  "An exception to the default modulation for this profile expresses as a range of subcarrier IDs (including start and stop)
+	                 and the modulation order to be assigned to all subcarriers within the expressed range.";
+	                key "start-subcarrier-id";
+	                leaf start-subcarrier-id {
+	                  description "An identifier for the first subcarrier in the range of active subcarriers with the same modulation.
+	                    If there is no actual range (e.g., because end-subcarrier-id is omitted), then only this subcarrier is used.";
+	                  type uint32;
+	                }
+	                leaf end-subcarrier-id {
+	                  description  "An identifier for the last subcarrier in the range of active subcarriers with the same modulation.
+	                    Optional; if omitted, then this exception is just for the subcarrier matching the start-frequency.";
+	                  type uint32;
+	                }
+	               leaf skip {
+	                   description   "This attribute indicates if the configuration applies to contiguous subcarriers or if it 
+										applies to every other subcarrier.";
+	                   type boolean;
+	                   default false;
+	               }
+	               leaf ofdm-main-modulation {
+	                   description "If skip is false, the modulation for this range of subcarriers. If skip is true,
+	                      the modulation for the odd-numbered subcarriers in the range.";
+	                   type modulation-type;
+	                   
+	               }
+	               leaf ofdm-skip-modulation {
+	                   description "Ignored if skip is false. If skip is true, the modulation of the even-numbered subcarriers in the range.";
+	                   type modulation-type;
+	               }
+
+              }  
+    }
+	
+	//--------------------------------------------------------  US -------------
+	//-------------------------------------------------------- **** -------------
+	
+	  grouping us-channel {
+		    description "Each us-attributes has:
+		       				1. A list of upstream OFDMA Channels (with the OFDM profiles assigned to it.
+							2. A list of upstream OFDMA IUCs Profiles with bitloadng configuration.";
+      		list us-ofdma-channel {
+				description  "A single upstream OFDMA channel on this CCAP with its assigned IUC (by index).";
+				key "IfIndex";
+
+				uses cl-pma:us-ofdma-channel-attributes;
+
+                leaf-list channel-cm-list { type yang:mac-address;  description  "list of CMs on channel"; }
+
+                list us-ofdma-iuc {
+					description  "A list of this channel's upstream OFDMA IUCs and their configurations on this CCAP.. ";
+					key "iuc-index";
+
+					uses cl-pma:us-ofdma-iuc-attributes;
+
+					leaf-list iuc-cm-list { type yang:mac-address; description  "list of CMs assigned to IUC";  }
+                }
+			} 
+  		}
+
+	
+	
+	  grouping us-ofdma-channel-attributes {
+	      description "IUC configuration for a US OFDMA channel.";
+
+	  	  leaf IfIndex                     {type channel-index; description "InterfaceIndex"; }
+		  container ofdma-channel-attr {
+		      leaf ChannelId                   {type uint16; description "Channel Id";} 
+			  leaf AdminState                  {type uint64; description "AdminStatusType";}
+			  leaf TemplateIndex               {type uint8; description "UsOfdmaModulationTemplate";} 
+	          leaf ConfigChangeCt              {type uint8; description "Configuration Change Count field in the UCD";} 
+	          leaf TargetRxPower               {type uint16; description "TenthdBmV, power of the expected commanded received signal in the channel,";}
+			  leaf LowerBdryFreq               {type uint32{range "5000000..197600000";} description "Hz"; }
+			  leaf UpperBdryFreq               {type uint32{range "11400000..204000000";} description "Hz"; }
+			  leaf SubcarrierSpacing	       {type uint16{range "25 | 50";}               description "50 Khz - 2K FFT,  25 KHz 4K FFT ";} 
+			  leaf CyclicPrefix	               {type uint16{range "96 | 128 | 160  | 192  | 224  | 256  | 288  | 320  | 384  | 512  | 640 ";} description "Cyclic Prefix Samples (Ncp) ";} 
+	          leaf NumSymbolsPerFrame          {type uint8{range "6..36";} description "number of symbols per frame.";} 
+			  leaf RolloffPeriod               {type uint16{range "0 | 32 | 64 | 96 | 128 | 160 | 192 | 224";}     description "Roll-Off Period Samples (NRP) ";} 
+	          leaf PreEqEnable                 {type boolean; description "PreEqEnable";} 
+			  leaf ProvAttribMask              {type uint32; description "Provisioned Attribute Mask for the OFDMA upstream Channel"; }
+	          leaf OfdmaChannelUtilization      {type uint8{range "0..100";}  description "Percentage ";}
+          	
+		      list us-subcarrier-defn {
+						description "A list of OFDMA subcarrier descriptions.";
+						key "StartSubcarrierId";
+						leaf StartSubcarrierId { type uint16; }
+	                    leaf EndSubcarrierId   { type uint16; }
+			            leaf SubcarrierDefn    {type subcarrier-type; } 
+			  }
+          }
+	  }
+	
+	  grouping us-ofdma-iuc-attributes {
+	      description "Bit load configuration of a single downstream ofdm profile.";
+		  leaf iuc-index {		     	 type cl-pma:ofdma-iuc-index; }
+	      leaf ofdma-modulation-default {
+				description "Default modulation assigned to all subcarriers in the profile.";
+			    type modulation-type;
+			    
+		  }
+	      leaf ofdma-pilot-pattern-default {
+				description "Default pilot pattern assigned to all minislots in the profile.";
+				type uint8 { range "1..14";} 
+			    
+		  }
+	      list minislot-Config {
+	          key start-minislot-number;
+	          description     "An exception to the default modulation for this profile expressed
+	             as a range of subcarriers (including start and stop) and the pilot
+	             pattern and modulation order to be assigned to all subcarriers
+	             within the expressed range.";
+	           leaf start-minislot-number {
+		            description	  "An identifier for the first subcarrier in the range of subcarriers with
+		                the same modulation and pilot pattern. If there is no actual range (e.g.,
+		                because end-subcarrier-id is omitted), then only this subcarrier is used.";
+		            type uint8 {   range "1..237";}
+		       }
+	           leaf start-subcarrier-id {
+		            description "An identifier for the first subcarrier in the range of subcarriers with
+		                the same modulation and pilot pattern. If there is no actual range (e.g.,
+		                because end-subcarrier-id is omitted), then only this subcarrier is used.";
+		            type uint16{range "1..4095";}
+					
+	           }
+	           leaf num-consecutive-minislots {
+	           		description "An identifier for the last subcarrier in the range of subcarriers with the
+	                same modulation and pilot pattern.
+	                Optional; if omitted, then this exception is just for the subcarrier matching
+	                the start-subcarrier-id.";
+		            type uint8 {  range "1..237"; } 
+					
+	           }
+	           leaf minislot-pilot-pattern {
+		            description "This attribute defines the pilot pattern for the frequency range.
+		               All minislots in the frequency range have this pilot pattern.
+		               Channels using 2k mode are restricted to patterns 1-7, while channels
+		               using 4k mode are restricted to patterns 8-14.";
+		            type uint8 { range "1..14";}       
+	            	
+	           }
+			   leaf minislot-modulation {
+				  description	   "The modulation order for this range of subcarriers.";
+				  type modulation-type;
+				  
+			   }
+	      }   
+	  }
+	  
+	//--------------------------------------------------------  RPCs  DS -------------
+	//-------------------------------------------------------- **** -------------
+
+ 
+    // OPT-REQ----------------
+	  grouping opt-request-msg {
+	    leaf cm-mac { type yang:mac-address; mandatory true; }
+	    leaf ds-ofdm-channel-if-index {type channel-index; mandatory true;  }
+	    leaf ds-ofdm-profile-index {type ofdm-profile-index; mandatory true;}
+	    leaf opcode {
+	      type enumeration {
+				enum start;
+				enum abort;
+				enum fdx-triggered-start;
+				enum other;
+	      }
+	      mandatory true;
+	    }
+	    leaf profile-test {
+	      type bits {
+				bit rx-mer-subcarrier-stats       { position 0;}
+				bit rx-mer-subcarrier-thresh-comp { position 1;}
+				bit snr-margin-candidate-profile  { position 2;}
+				bit codeword-stats                { position 3;}
+				bit codeword-thresh-comp 		{ position 4;}
+				bit ncp-field-stats 			{ position 5;}
+				bit ncp-crc-thresh-comp			{ position 6;}
+				bit reserved 					{ position 7;}
+		  }
+	      mandatory true;
+	    }
+		
+		list mer-threshold {
+			key "modulation-order";
+			leaf modulation-order { type modulation-type; mandatory true;  }
+		    leaf rx-mer-vs-bitloading-target { type int8;   mandatory  true; }
+		    leaf rx-mer-margin { type int8; mandatory true; }
+		}
+	    // leaf avg-snr-target { type uint8; }  Reserved in MULPI
+	    leaf max-duration   { type uint32 { range "1 .. 1800000";}	    }
+	    leaf max-cw-count   { type uint32;}
+	    leaf max-uncorrectable-cw {	type uint32;}
+	    leaf cw-tagging           { type boolean; default "false";}
+	    leaf ncp-field-count      { type uint32; }
+	    leaf max-ncp-crc-fail-count { type uint32;}
+	  } // opt-request
+
+	
+	  // OPT-RSP----------------
+	  grouping opt-response-msg {
+		    leaf cm-mac {      type yang:mac-address; mandatory true;    }
+		    leaf ds-channel-index {  type channel-index;   mandatory true; }
+		    leaf ds-ofdm-profile-cfg-profile-id {  type ofdm-profile-index;    mandatory true;    }
+		    leaf status {
+		      type enumeration {
+					enum testing;
+					enum testing-already;
+					enum no-free-profile;
+					enum max-duration-expired;
+					enum aborted;
+					enum complete;
+					enum profile-already-assigned-to-cm;
+		      }
+		      mandatory false;
+		    }
+		    leaf first-active-subcarrier-num { type int32;    mandatory false;  }
+	        leaf mer-data-length {  type int32;mandatory false;}
+		    leaf mer-data {  type binary;mandatory false;}
+		    leaf mer-pass-fail-data {  type boolean;mandatory false;  }
+		    leaf num-subcarriers-below-threshold {type int32; mandatory false; }
+		    leaf snr-margin-data { type int8;mandatory false;  }
+		    leaf codeword-count { type yang:counter64; mandatory false; }
+		    leaf corrected-codeword-count {type yang:counter64;mandatory false; }
+		    leaf uncorrectable-codeword-count { type yang:counter64; mandatory false;    }
+		    leaf ncp-field-count {type yang:counter64;mandatory false;  }
+		    leaf ncp-crc-fail-count { type yang:counter64;mandatory false; }
+	  } // grouping opt-response
+	
+	 
+
+	//--------------------------------------------------------  RPCs  US -------------
+	//-------------------------------------------------------- **** -------------
+	
+    //	 Initiate US RxMER
+		grouping us-rxmer-initiate {
+			  leaf cm-mac {
+			      type yang:mac-address;
+			      mandatory true;
+			  }
+	 	      leaf us-ofdma-chan-channel-index {
+			      type channel-index;
+			      mandatory true;
+	    	  }
+			  leaf pre-eq {
+			      type boolean;
+			      mandatory true;
+		      }
+		      leaf num-averages {
+		    	  type uint8;
+			      mandatory true;
+			    }
+		}	
+		
+		//	 RxMER Test Results
+		grouping us-rxmer-test-results {
+				  leaf cm-mac {
+				      type yang:mac-address;
+				      mandatory true;
+				  }
+		 	      leaf us-ofdma-chan-channel-index {
+				      type channel-index;
+				      mandatory true;
+		    	  }
+				  leaf num-averages {
+				      type uint8;
+				      mandatory true;
+			      }
+			      leaf pre-eq {
+			    	  type boolean;
+				      mandatory true;
+				  }
+			      leaf subcarrier-zero-center-frequency {
+			    	  type uint32;
+				      mandatory true;
+				  }
+			      leaf first-active-subcarrier-index {
+			    	  type uint16;
+				      mandatory true;
+				  }
+			      leaf subcarrier-spacing {
+			    	  type uint8;
+				      mandatory true;
+				  }
+			      leaf length-rxmer-data { type uint64;}
+			      leaf mer-data {  type binary;mandatory false;}
+		  }	 
+		 
+	// Initiate OUDP
+	grouping oudp-initiate {
+		  leaf cm-mac {
+		      type yang:mac-address;
+		      mandatory true;
+		  }
+ 	      leaf us-ofdma-chan-channel-cfg-index {
+		      type channel-index;
+		      mandatory true;
+    	  }
+		  leaf us-ofdm-assigned-oudp-iuc {
+		      type uint8;
+		      mandatory true;
+	      }
+	      leaf num-test-packets {
+	    	  type uint64;
+		      mandatory true;
+		    }
+	}	 
+	
+	//	 OUDP Test Results
+	grouping oudp-test-results {
+			  leaf cm-mac {
+			      type yang:mac-address;
+			      mandatory true;
+			  }
+	 	      leaf us-ofdma-chan-channel-cfg-index {
+			      type channel-index;
+			      mandatory true;
+	    	  }
+			  leaf us-ofdm-assigned-oudp-iuc {
+			      type uint8;
+			      mandatory true;
+		      }
+		      leaf fec-cw-count {
+		    	  type uint64;
+			      mandatory true;
+			  }
+		      leaf corrected-fec-cw-count {
+		    	  type uint64;
+			      mandatory true;
+			  }
+		      leaf uncorrectable-fec-cw-count {
+		    	  type uint64;
+			      mandatory true;
+			  }
+		      leaf total-mac-frames {
+		    	  type uint64;
+			      mandatory true;
+			  }
+		      leaf crc-failures {
+		    	  type uint64;
+			      mandatory true;
+			  }
+	  }	 
+	
+	// Initiate Active/ Probe
+	grouping probe-initiate {
+		  leaf cm-mac {
+		      type yang:mac-address;
+		      mandatory true;
+		  }
+ 	      leaf us-ofdma-chan-channel-cfg-index {
+		      type channel-index;
+		      mandatory true;
+    	  }
+		  leaf use-idle-sid-quite-probe{
+		      type boolean;
+		      mandatory true;
+	      }
+		  leaf pre-eq {
+		      type boolean;
+		      mandatory true;
+	      }
+	      leaf timeout {
+	    	  type uint16;
+		      mandatory true;
+		  }
+	      leaf num-symbols-to-capture{
+	    	  type uint16;
+		      mandatory true;
+		  }
+	      leaf max-captured-symbols{
+	    	  type uint16;
+		      mandatory true;
+		  }
+	}	 
+	
+	//	 Active/quite  Probe Test Results
+	grouping probe-test-results {
+			  leaf cm-mac {
+			      type yang:mac-address;
+			      mandatory true;
+			  }
+	 	      leaf us-ofdma-chan-channel-cfg-index {
+			      type channel-index;
+			      mandatory true;
+	    	  }
+
+			  leaf capture-time {
+			      type uint32;
+			      mandatory true;
+		      }
+		      leaf subcarrier-zero-center-frequency {
+		    	  type uint32;
+			      mandatory true;
+			  }
+		      leaf first-active-subcarrier-index {
+		    	  type uint16;
+			      mandatory true;
+			  }
+		      leaf subcarrier-spacing {
+		    	  type uint8;
+			      mandatory true;
+			  }
+		      leaf length-probe-data { type uint64;}
+			  leaf probe-data {  type binary;mandatory false;}
+              leaf outputfilename {  type string;}
+	  }		
+	
+	
+
+	// Initiate us-triggered-spectrum-capture
+	grouping us-trig-spec-cap-initiate {
+		  leaf cm-mac {
+		      type yang:mac-address;
+		      mandatory true;
+		  }
+ 	      leaf us-ofdma-chan-channel-cfg-index {
+		      type channel-index;
+		      mandatory true;
+    	  }
+
+	}	 
+	
+	//	 us-triggered-spectrum-capture Test Results
+	grouping us-trig-spec-cap-test-results {
+			  leaf cm-mac {
+			      type yang:mac-address;
+			      mandatory true;
+			  }
+	 	      leaf us-ofdma-chan-channel-cfg-index {
+			      type channel-index;
+			      mandatory true;
+	    	  }
+			  leaf outputfilename {  type string;}
+
+	  }	
+	
+
+
+}
