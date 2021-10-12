@@ -1,16 +1,7 @@
 # Netconf schemas
 
 
+### Details
+Netconf schemas with some changes made by frinx.
 
-### VFZ 
-
-Schemas used for netconf devices in VFZ project
-
-### Sample topology
-
-Schemas used for simulated netconf devices in sample topology
-
-
-
-
-
+All changes made by frinx are descripted directly in yang model by comment which start by '// FRINX' 
