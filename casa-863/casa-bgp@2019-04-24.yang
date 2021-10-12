@@ -1,0 +1,1136 @@
+module casa-bgp {
+    yang-version 1;
+  
+    namespace "urn:casa:params:xml:ns:yang:casa-bgp"; 
+    prefix "bgp";
+
+    import ietf-inet-types {
+        prefix "inet";
+    }
+
+    organization "Casa Systems Inc";
+
+    contact 
+        "Casa Systems Inc.     
+         100 Old River Road, Suite 100             
+         Andover, MA 01810      
+         TEL: +1 978 688 6706      
+         FAX: +1 978 688 6584        
+         E-mail: support@casa-systems.com";
+    
+    description
+        "CASA vBNG router bgp Configuration";
+
+    revision "2019-04-24" {
+        description "Initial version";
+    }    
+
+    typedef Neighbor-Id-Type {
+        type union {
+            type string;
+            type inet:ip-address-no-zone;
+        }
+        description "Neighbor Id, can be an IP address or a string name.";
+    }
+
+	grouping send-community-group {
+		leaf  send-community{
+			type enumeration {
+				enum both;
+				enum extended; 	
+				enum standard; 
+			} 				
+		}
+	}	
+	
+	grouping  dampening-group {
+		container  dampening{
+			leaf   half-life-time {
+				type uint16 {
+					range "1..45";
+				}
+			}		
+			leaf  reusing-route {
+				type uint16 {
+					range "1..20000";
+				}
+			}
+			leaf suppressing-route {
+				type uint16 {
+					range "1..20000";
+				}
+			}
+			leaf  maximum-duration {
+				type uint16 {
+					range "1..255";
+				}
+			}
+		}
+	}
+	
+	grouping bgp-distance-group{    
+		container bgp-distance{
+			leaf routes-external {
+				type uint16{
+					range "1..255";
+				}
+			}
+			leaf routes-internal {
+				type uint16{
+					range "1..255";
+				}
+			}
+			leaf local-routes {
+				type uint16{
+					range "1..255";
+				}
+			}
+		}		
+	}
+		
+	grouping aggregate-address-group{
+		list aggregate-address {
+			key "aggregate-address";
+			leaf  aggregate-address {
+				type inet:ip-prefix;
+			}
+			leaf as-set {
+				type boolean;
+			}
+			leaf summary-only {
+				type boolean;
+			}
+		}
+	}
+
+	grouping maximum-prefix-list-group {
+		list maximum-prefix {
+			key maximum-prefix;
+			leaf maximum-prefix {
+				type uint32;
+			}	
+			leaf threshold {
+				type uint16{
+					range "1..100";
+				}
+			}
+			leaf warning-only {
+				type boolean;
+			}							
+		}
+	}
+
+	grouping distribute-list-group {
+		list distribute-list {
+			key "access-list-name";
+			leaf access-list-name {
+				type string;
+			}
+			leaf in {
+				type boolean;
+			}
+			leaf out {
+				type boolean;
+			}									
+		}
+	}
+
+	grouping filter-list-group {
+		list filter-list {
+			key "access-list-name";
+			leaf access-list-name {
+				type string;
+			}
+			leaf in {
+				type boolean;
+			}
+			leaf out {
+				type boolean;
+			}									
+		}	
+	}
+
+	grouping prefix-list-group {
+		list prefix-list {
+			key "access-list-name";
+			leaf access-list-name {
+				type string;
+			}
+			leaf in {
+				type boolean;
+			}
+			leaf out {
+				type boolean;
+			}									
+		}	
+	}
+
+	grouping route-map-list-group {
+		list route-map {
+			key "route-map-name";
+			leaf route-map-name {
+				type string;
+			}
+			leaf in {
+				type boolean;
+			}
+			leaf out {
+				type boolean;
+			}									
+		}	
+	}
+
+	grouping attribute-unchanged-group {
+		container attribute-unchanged {
+			leaf med {
+				type boolean;
+			}	
+			leaf as-path {
+				type boolean;
+			}
+			leaf next-hop {
+				type boolean;
+			}											
+		}	
+	}
+
+	grouping neighbor-group {
+		list neighbor {
+			key "neighbor-id";
+			leaf neighbor-id {
+				type Neighbor-Id-Type;
+				description "Neighbor Id, can be an IP address or a string name.";
+			}
+			leaf activate {
+				type boolean;
+			}
+			leaf peer-group {
+				type string;
+			}
+			uses send-community-group;
+		}
+	}
+	grouping vpn-neighbor-group {
+		list neighbor {
+			key "neighbor-id";
+			leaf neighbor-id {
+				type Neighbor-Id-Type;
+				description "Neighbor Id, can be an IP address or a string name.";
+			}
+			leaf activate {
+				type boolean;
+			}
+			leaf peer-group {
+				type string;
+			}
+			uses send-community-group;
+			leaf allowas-in {
+				type uint16 {
+					range "1..10";
+				}
+			}
+			uses attribute-unchanged-group;
+			uses distribute-list-group;
+			uses filter-list-group;
+			uses maximum-prefix-list-group;
+			leaf next-hop-self {
+				type boolean;
+			}
+			uses prefix-list-group;
+			leaf remove-private-AS {
+				type boolean;
+			}
+			uses route-map-list-group;
+		}
+	}
+	grouping bgp-config-neighbor-group {	
+		list neighbor {
+			key "neighbor-id";
+			leaf neighbor-id {
+				type Neighbor-Id-Type;
+				description "Neighbor Id, can be an IP address or a string name.";
+			}
+			leaf remote-as {
+				type uint32 {
+					range "1..4294967295";
+				}
+				description "A BGP neighbor.";
+			}
+			leaf capability-dynamic {
+					type boolean;
+			}
+			leaf description {
+				type string;
+			}
+			leaf dont-capability-negotiate {
+				type boolean;
+			}
+			leaf ebgp-multihop {
+				type uint16{
+					range "1..255";
+				}
+			}
+			leaf enforce-multihop {
+				type boolean;
+			}
+			container local-as {
+				leaf as-number{
+					type uint32 {
+						range "1..4294967295";
+					}
+				}
+				leaf no-prepend {
+					type boolean;
+				}							
+			}
+
+			leaf override-capability {
+				type boolean;
+			}
+			leaf passive {
+				type boolean;
+			}
+			leaf password {
+				type string;
+			}
+			leaf password-secret{
+				type string;
+			}
+			leaf peer-group {
+				type string;
+			}
+			leaf tcp-port {
+				type uint16;				
+			}
+			leaf shutdown {
+				type boolean;
+			}
+			leaf strict-capability-match{
+				type boolean;
+			}
+			leaf update-source {
+				type string;									
+			}
+			container timers{
+				leaf keepalive-interval {
+					type uint16;
+				}
+				leaf holdtime {
+					type uint16;
+				}
+				leaf min-holdtime {
+					type uint16;
+				}
+			}
+		}	
+	}
+	grouping ipv4-unicast-neighbor-group {
+		list neighbor {
+			key "neighbor-id";
+			leaf neighbor-id {
+				type Neighbor-Id-Type;
+				description "Neighbor Id, can be an IP address or a string name.";
+			}
+			leaf activate {
+				type boolean;
+			}	
+			leaf advertisement-interval {
+				type uint16 {
+					range "0..600";
+				}
+			}
+			leaf allowas-in {
+				type uint16 {
+					range "1..10";
+				}
+			}
+			uses attribute-unchanged-group;
+			container capability {
+				leaf orf-prefix-list {
+					type enumeration {
+						enum both;
+						enum receive; 	
+						enum send; 
+					}
+				}	
+			}
+			leaf default-originate {
+				type boolean;
+			}	
+			leaf default-originate-route-map {
+				type string;
+			}
+			uses distribute-list-group;
+			uses filter-list-group;
+			uses maximum-prefix-list-group;
+			leaf next-hop-self {
+				type boolean;
+			}	
+			leaf peer-group {
+				type string;
+			}								
+			uses prefix-list-group;
+			leaf remove-private-AS {
+				type boolean;
+			}
+			uses route-map-list-group;
+			uses send-community-group;
+			leaf soft-reconfiguration-inbound {
+				type boolean;
+			}
+			leaf unsuppress-map {
+				type string;
+			}
+			leaf weight {
+				type uint16;
+			}
+		}
+	}
+	grouping ipv4-vrf-neighbor-group {
+		list neighbor {
+			key "neighbor-id";
+			leaf neighbor-id {
+				type Neighbor-Id-Type;
+				description "Neighbor Id, can be an IP address or a string name.";
+			}
+			leaf remote-as {
+				type uint32 {
+					range "1..4294967295";
+				}
+				description "A BGP neighbor.";
+			}
+			leaf activate {
+				type boolean;
+			}		
+			leaf advertisement-interval {
+				type uint16 {
+					range "0..600";
+				}
+			}
+			leaf allowas-in {
+				type uint16 {
+					range "1..10";
+				}
+			}
+			uses attribute-unchanged-group;
+			container capability {
+				leaf orf-prefix-list {
+					type enumeration {
+						enum both;
+						enum receive; 	
+						enum send; 
+					}
+				}	
+			}
+			leaf default-originate {
+				type boolean;
+			}	
+			leaf default-originate-route-map {
+				type string;
+			}
+			uses distribute-list-group;
+			uses filter-list-group;
+			uses maximum-prefix-list-group;
+			leaf next-hop-self {
+				type boolean;
+			}	
+			leaf peer-group {
+				type string;
+			}								
+			uses prefix-list-group;
+			leaf remove-private-AS {
+				type boolean;
+			}
+			uses route-map-list-group;
+			uses send-community-group;
+			leaf soft-reconfiguration-inbound {
+				type boolean;
+			}
+			leaf unsuppress-map {
+				type string;
+			}
+			leaf weight {
+				type uint16;
+			}
+			leaf as-override {
+				type boolean;									
+			}	
+			leaf description {
+				type string;
+			}								
+			leaf ebgp-multihop {
+				type uint16{
+					range "1..255";
+				}
+			}
+			leaf local-as {
+				type uint32{
+					range "1..4294967295";
+				}
+			}	
+			leaf local-as-no-prepend {
+				type boolean;
+			}								
+			leaf passive {
+				type boolean;
+			}
+			leaf password {
+				type string;
+			}	
+			leaf password-secret {
+				type string;
+			}
+			leaf shutdown {
+				type boolean;
+			}
+			leaf update-source {
+				type string;
+			}															
+		}		
+	}
+	grouping ipv6-unicast-neighbor-group {
+		list neighbor {
+			key "neighbor-id";
+			leaf neighbor-id {
+				type Neighbor-Id-Type;
+				description "Neighbor Id, can be an IP address or a string name.";
+			}
+			leaf activate {
+				type boolean;
+			}
+			leaf advertisement-interval {
+				type uint16 {
+					range "0..600";
+				}
+			}
+			leaf allowas-in {
+				type uint16 {
+					range "1..10";
+				}
+			}
+			uses attribute-unchanged-group;
+			container capability {
+				leaf orf-prefix-list {
+					type enumeration {
+						enum both;
+						enum receive; 	
+						enum send; 
+					}
+				}	
+			}
+			leaf default-originate {
+				type boolean;
+			}	
+			leaf default-originate-route-map {
+				type string;
+			}
+			uses distribute-list-group;
+			uses filter-list-group;
+			uses maximum-prefix-list-group;
+			leaf next-hop-self {
+				type boolean;
+			}	
+			leaf peer-group {
+				type string;
+			}								
+			uses prefix-list-group;
+			leaf remove-private-AS {
+				type boolean;
+			}
+			uses route-map-list-group;
+			uses send-community-group;
+			leaf soft-reconfiguration-inbound {
+				type boolean;
+			}
+			leaf unsuppress-map {
+				type string;
+			}
+			leaf weight {
+				type uint16;
+			}
+		}
+	}
+	grouping ipv6-labeled-unicast-neighbor-group {
+		list neighbor {
+			key "neighbor-id";
+			leaf neighbor-id {
+				type Neighbor-Id-Type;
+				description "Neighbor Id, can be an IP address or a string name.";
+			}
+			leaf activate {
+				type boolean;
+			}		
+			leaf allowas-in {
+				type uint16 {
+					range "1..10";
+				}
+			}
+			uses attribute-unchanged-group;
+			uses distribute-list-group;
+			uses filter-list-group;
+			uses maximum-prefix-list-group;
+			leaf next-hop-self {
+				type boolean;
+			}							
+			uses prefix-list-group;
+			leaf remove-private-AS {
+				type boolean;
+			}
+			uses route-map-list-group;
+			uses send-community-group;
+			leaf weight {
+				type uint16;
+			}
+		}
+	}	
+	grouping ipv6-vrf-neighbor-group {
+		list neighbor {
+			key "neighbor-id";
+			leaf neighbor-id {
+				type Neighbor-Id-Type;
+				description "Neighbor Id, can be an IP address or a string name.";
+			}
+			leaf remote-as {
+				type uint32 {
+					range "1..4294967295";
+				}
+				description "A BGP neighbor.";
+			}	
+			leaf activate {
+				type boolean;
+			}
+			leaf advertisement-interval {
+				type uint16 {
+					range "0..600";
+				}
+			}
+			leaf allowas-in {
+				type uint16 {
+					range "1..10";
+				}
+			}
+			uses attribute-unchanged-group;
+			container capability {
+				leaf orf-prefix-list {
+					type enumeration {
+						enum both;
+						enum receive; 	
+						enum send; 
+					}
+				}	
+			}	
+			leaf default-originate {
+				type boolean;
+			}	
+			leaf default-originate-route-map {
+				type string;
+			}		
+			uses distribute-list-group;
+			uses filter-list-group;
+			uses maximum-prefix-list-group;
+			leaf next-hop-self {
+				type boolean;
+			}	
+			leaf peer-group {
+				type string;
+			}								
+			uses prefix-list-group;
+			leaf remove-private-AS {
+				type boolean;
+			}
+			uses route-map-list-group;
+			uses send-community-group;
+			leaf soft-reconfiguration-inbound {
+				type boolean;
+			}
+			leaf unsuppress-map {
+				type string;
+			}		
+			leaf weight {
+				type uint16;
+			}
+			leaf as-override {
+				type boolean;									
+			}
+			leaf description {
+				type string;
+			}
+			leaf ebgp-multihop {
+				type uint16{
+					range "1..255";
+				}
+			}
+			leaf local-as {
+				type uint32 {
+					range "1..4294967295";
+				}
+			}
+			leaf passive {
+				type boolean;
+			}
+			leaf password {
+				type string;
+			}
+			leaf password-secret{
+				type string;
+			}
+			leaf shutdown {
+				type boolean;
+			}
+			leaf update-source {
+				type string;									
+			}
+		}
+	}	
+	grouping network-group {	
+		list network {
+			key "network";
+			leaf network {
+				type inet:ip-prefix;
+			}
+			leaf backdoor {
+				type boolean;
+			}	
+			leaf route-map {
+				type string;
+			}	
+		}
+	}
+	
+	grouping ipv4-unicast-redistribute-group {
+		container redistribute {
+			container isis {
+				uses maximum-prefix-list-group; 		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}				
+			}
+			container connected {
+				uses maximum-prefix-list-group; 		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}									
+			}
+			list ospf{
+				key ospf-id;
+				leaf ospf-id{
+					type uint32;							
+				}
+				uses maximum-prefix-list-group; 		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}				
+			}
+			container rip {
+				uses maximum-prefix-list-group;		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}									
+			}
+			container static {
+				uses maximum-prefix-list-group; 		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}													
+			}																	
+		}			
+	}
+
+	grouping ipv6-unicast-redistribute-group {
+		container redistribute {
+			container isis {
+				uses maximum-prefix-list-group; 		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}				
+			}
+			container connected {
+				uses maximum-prefix-list-group;		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}									
+			}
+			list ospf {
+				key ospf-id;
+				leaf ospf-id {
+					type uint32;							
+				}
+				uses maximum-prefix-list-group; 		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}				
+			}
+			container rip {
+				uses maximum-prefix-list-group;		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}									
+			}
+			container static {
+				uses maximum-prefix-list-group;		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}													
+			}
+			container subscriber {
+				uses maximum-prefix-list-group; 		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}													
+			}																	
+		}			
+	}
+
+	grouping ipv4-vrf-redistribute-group {
+		container redistribute {
+			container connected {		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}									
+			}
+			list ospf {
+				key ospf-id;
+				leaf ospf-id {
+					type uint32;							
+				}		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}				
+			}
+			container rip {		
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}									
+			}
+			container static {	
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}													
+			}
+			container subscriber {	
+				leaf route-map {
+					type string;
+				}
+				leaf metric {
+					type uint32;									
+				}													
+			}																	
+		}			
+	}
+    
+    grouping router-bgp-group {
+        list bgp-config {
+            key bgp-id;
+            description "This object configures router bgp settings.";
+            leaf bgp-id {
+                type uint32 {
+                    range "1..4294967295";
+                }
+                description "bgp list id";
+            }
+			container maximum-paths {
+				leaf ebgp {
+					type uint8 {
+						range "1..8";
+					}
+				}
+				leaf ibgp {
+					type uint8 {
+						range "1..8";
+					}
+				}	
+			}
+			container timers {
+				leaf keepalive-interval {
+					type uint16;
+				}
+				leaf holdtime {
+					type uint16;
+				}
+				leaf min-holdtime {
+					type uint16;
+				}	
+			}
+			container distance {
+				list administrative-distance {
+					key "administrative-distance ip-source-prefix";
+					leaf administrative-distance {
+						type uint16;
+					}
+					leaf acl-name {
+						type string;
+					}	
+					leaf ip-source-prefix {
+						type inet:ip-prefix; 
+					}
+				}
+				uses bgp-distance-group;
+			}	
+			container bgp {
+				leaf always-compare-med {
+					type boolean;
+				}
+				container bestpath{
+					leaf  as-path-ignore{
+						type boolean;
+					}				
+					leaf  compare-routerid {
+						type boolean;
+					}
+					leaf med-confed {
+						type boolean;
+					}
+					leaf med-missing-as-worst {
+						type boolean;
+					}
+				}
+				container confederation{
+					leaf identifier {
+						type uint32;
+					}				
+					leaf peers-as-number {
+						type string;
+					}
+				}		
+				leaf default-ipv4-unicast {
+					type boolean;
+				}
+				leaf default-local-preference {
+					type uint32 {
+						range "0..4294967295";
+					}
+				}
+				leaf deterministic-med {
+					type boolean;
+				}
+				leaf enforce-first-as {
+					type boolean;
+				}
+				leaf fast-external-failover {
+					type boolean;
+				}				
+				container graceful-restart {				
+					leaf restart-time {
+						type uint32 {
+							range "1..3600";
+						}
+					}
+					leaf stalepath-time {
+						type uint32 {
+							range "1..3600";
+						}
+					}					
+				}			
+				leaf log-neighbor-changes {
+					type boolean;
+				}			
+				leaf network-import-check {
+					type boolean;
+				}
+				leaf router-id {
+					type string;
+				}
+				leaf scan-time {
+					type uint32 {
+						range "5..60";
+					}
+				}	
+				leaf update-delay {
+					type uint32 {
+						range "1..3600";
+					}
+				}
+            }	
+            container neighbors {
+				uses bgp-config-neighbor-group;
+            }			
+            container address-family {
+                container ipv4 {
+                    description "IPv4 address-family Neighbor configuration.";
+        
+					container mdt {
+						uses neighbor-group;
+                    }						
+					container mvpn {
+						uses neighbor-group;
+                    }
+					container unicast {
+						uses aggregate-address-group;						
+						uses ipv4-unicast-neighbor-group;
+						container bgp {
+							uses dampening-group;
+						}
+						uses network-group;
+						uses ipv4-unicast-redistribute-group;														
+                    }
+                    list vrf {
+						key "vrf-id";
+						leaf vrf-id {
+							type string;
+						}
+						uses aggregate-address-group;
+						uses bgp-distance-group;
+						leaf default-information-originate {
+							type boolean;
+						}	
+						uses ipv4-vrf-neighbor-group;	
+						uses network-group;
+						uses ipv4-vrf-redistribute-group;														
+                    }
+                }					
+                container ipv6 {
+                    description "IPv6 address-family Neighbor configuration.";
+					list vrf {
+						key "vrf-id";
+						leaf vrf-id {
+							type string;
+						}
+						list network {
+							key "network";
+							leaf network {
+								type inet:ipv6-prefix;
+							}	
+							leaf route-map {
+								type string;
+							}	
+						}
+						list aggregate-address {
+							key "aggregate-address";
+							leaf aggregate-address {
+								type inet:ipv6-prefix;
+							}
+							leaf summary-only {
+								type boolean;
+							}
+						}      
+						uses ipv6-vrf-neighbor-group;
+						uses bgp-distance-group;
+						container redistribute {
+							container subscriber { 		
+								leaf route-map {
+									type string;
+								}
+								leaf metric {
+									type uint32;									
+								}				
+							}
+							container connected {		
+								leaf route-map {
+									type string;
+								}
+								leaf metric {
+									type uint32;									
+								}									
+							}
+							container static {
+								leaf route-map {
+									type string;
+								}
+								leaf metric {
+									type uint32;									
+								}													
+							}																	
+						}						
+					}						
+
+					container labeled-unicast {       
+						uses ipv6-labeled-unicast-neighbor-group;			
+					}					
+					
+					container unicast {
+						uses ipv6-unicast-neighbor-group;
+						uses bgp-distance-group;
+					
+						container bgp {
+							uses dampening-group;
+						}	
+						list aggregate-address {
+							key "aggregate-address";
+							leaf aggregate-address {
+								type inet:ipv6-prefix;
+							}
+							leaf summary-only {
+								type boolean;
+							}
+						}						
+						list network{
+							key "network";
+							leaf network {
+								type inet:ipv6-prefix;
+							}	
+							leaf route-map {
+								type string;
+							}	
+						}
+						uses ipv6-unicast-redistribute-group;
+					}
+                }	
+				container l2vpn-vpls {
+					uses neighbor-group;					
+                }
+                container vpnv4 {
+					container bgp {
+						uses dampening-group;
+					}
+					uses vpn-neighbor-group;					
+                }
+				container vpnv6 {
+					uses vpn-neighbor-group;
+				}
+            }
+        }
+    }
+
+    container casa-bgp {
+        container router-bgp {
+            uses router-bgp-group;
+            description "This object configures router bgp settings.";
+        }
+    }
+
+}

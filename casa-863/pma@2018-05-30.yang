@@ -1,0 +1,512 @@
+module pma
+{
+	  
+	  // namespace
+	  namespace "urn:cablelabs:params:xml:ns:yang:pma";
+	  prefix "pma";
+	  
+	
+	  // import types
+	  import ietf-yang-types        { prefix "yang";}
+	  import ietf-inet-types        { prefix "inet";}
+	  import cl-pma-types           { prefix "cl-pma"; }
+	  
+	  organization "Cable Television Laboratories, Inc.";
+	
+	  contact "Cable Television Laboratories, Inc.
+	           858 Coal Creek Circle
+	           Louisville, Colorado 80027-9750
+	           U.S.A.
+	           Phone: +1 303-661-9100
+	           Fax:   +1 303-661-9199
+	           E-mail: yang@cablelabs.com 		 	 	   
+		  	   Authors: Karthik Sundaresan, Jason Schnitzer, Jeff DeMent";
+	
+	  reference "DOCSIS 3.1 Profile Managmeent Technical Report, CM-TR-PMA-V01-180530.";
+	
+	  revision 2018-05-30 {
+	    description
+	      "Initial public release by PMA WG 
+			Karthik Sundaresan :  US channel objects, DS Channel Objects, US IUC, DS Profile definitions, 
+								  Updates (US-OFDMA rpcs, DS-OFDM rpcs), Slot/Port Hierarchy, Notifications 
+			Jason Schnitzer    :  Initial version (DS-OFDM rpcs), basic DS Profile objects, Profile-CM association
+            Jeff DeMent        :  Updates for US IUC data objects, Profile-CM association";
+
+	    reference "";
+	  }
+	  revision 2017-01-01 {
+	    description
+	      "Draft working versions over 2017 : D01 D02 of the PMA TR ";  
+	    reference "";
+	  }
+
+
+
+	  // CCAP device
+	
+      container pma-ccap {
+	      description "CCAP devices are known by their network name which is any string. Each CCAP device has a network address:port and a list of available downstream channels";
+	      leaf ccap-identifier {  type string;  description "CCAP Identity or name"; } 
+	
+          container ccap-descriptor {
+	          leaf cmts-description    { type string;   description "This attribute contains the description of the CCAP platform.";}
+		      leaf location        { type string { length "1..128";} description "This attribute contains any location information for the CCAP.";}
+		      leaf ipaddress       {type inet:ip-address; description "This attribute contains IPv4/IPv6 information for the CCAP.";}
+    
+              container pma-capabilities {
+		            leaf num-ds-profile {  type uint8;  description "number of profiles supported per OFDM channel";  } 
+	                leaf num-us-iucs {  type uint8;  description "number of IUCs/profiles supported per OFDMA channel";  } 
+		            leaf-list ds-mod-orders   { type cl-pma:modulation-type;   description "contains the list of modulation orders supported qpsk-16kQAM";}
+		            leaf-list us-mod-orders   { type cl-pma:modulation-type;   description "contains the list of modulation orders supported qpsk-4kQAM";}
+					leaf-list us-pilot-patterns   { type uint8;   description "This attribute contains the list of pilot patterns supported 1-14.";}
+                    leaf cmts-docsis-Ver     { type string;   description "This attribute contains version D3.1 OFDM, D3.1OFDMA, FDX etc.";}
+					leaf vendor-specific {  type string;  description "vendor specific";  } 
+		       }
+	      }
+ 
+	      list slot{ 
+                key "slot-number";  description "a slot within the CCAP chassis. Line cards reside in slots.";
+                leaf slot-number { type uint8;  description " the slot number";                }
+                
+				list ds-rf-port {
+                    key port-number;  description  "represents a physical downstream RF connector on a CCAP line card.  ";
+                    leaf port-number {  type uint32; }
+
+                    uses cl-pma:ds-channel;
+                }
+				list us-rf-port {
+                    key port-number;  description  "represents a physical upstream RF connector on a CCAP line card.  ";
+                    leaf port-number {  type uint32; }
+
+                    uses cl-pma:us-channel;
+                }
+	      }
+	    }
+	 
+	
+	
+	    
+
+	  
+
+	    // RPC defintions
+	
+	    rpc run-ds-opt-test {
+		       description	"Procedure to trigger an OPT (OFDMA Profile Test) in the CCAP. CCAP returns results of OPT.  ";
+		       input {
+					uses cl-pma:opt-request-msg;
+		        }
+				//	     Comment PMA WG Call  : OPT is a long procedire,   Should this return  an URL ?.  Based on timers etc   
+		    	// this could work for Netconf...  not for RESTConf...  
+		       output {  
+                       leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+					   leaf return-status {  type cl-pma:status-string; description "RPC return status";	     }
+					   leaf timestamp {  type yang:date-and-time;description "RPC timestamp";     }
+					   leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+						description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+					   uses cl-pma:opt-response-msg;
+		       }
+	    }
+	    
+	    
+	    rpc assign-single-profile-to-cm-list {  
+		      description "Procedure to add an actve running profile for a group of CMs associated with an OFDM channel on a CMTS.
+		    	           CMTS RPC will return immediately. Notification at a later time from CMTS that assignment is complete";
+		       input {
+					leaf-list cm-mac { type yang:mac-address; }
+					leaf ds-channel-Ifindex { type cl-pma:channel-index; mandatory true;  }
+					leaf profile-index { type cl-pma:ofdm-profile-index; mandatory true;}
+		      }
+		      output {
+		    	    leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+		    	    leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+					leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}	
+					leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+					         description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+		     }
+	    }
+	    
+	    rpc assign-list-of-profiles-to-cm {  
+		      description "Procedure to add the set of all running profiles for a CM associated with an OFDM channel on a CCAP.
+		    	           CMTS RPC will return immediately. Notification at a later time from CMTS that assignment is complete";
+		      input {
+					leaf cm-mac { type yang:mac-address; }
+					leaf ds-channel-Ifindex { type cl-pma:channel-index; mandatory true;  }
+					leaf-list profile-index { type cl-pma:ofdm-profile-index; }
+		      }
+		      output {
+		    	    leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+		    	    leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+					leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}	
+					leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+											description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+		      }
+	    }
+	    
+	    
+	    rpc get-cm-ofdm-profiles {
+		      description  "Procedure to get running profile assignments for a single CM from a CCAP. 
+		    	  			Indicates which of the profile(s) are currently 'active' (currently forwarding data).";
+		      input {
+					leaf cm-mac {  type yang:mac-address; mandatory true;}
+		      }
+		      output {
+					leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+			    	leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+				    leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}
+				    leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+									description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+					list cm-ofdm-profiles {
+						  key channel-Ifindex;
+						  leaf channel-Ifindex { type cl-pma:channel-index; mandatory true;  }
+						  leaf-list profile-index { type cl-pma:ofdm-profile-index; }
+					}
+		      }
+	    }
+	
+	    rpc get-ccap-ofdm-profiles {
+		      description "Procedure to get all OFDM profiles (and defintions) currently  per OFDM channel ";
+		       input {  leaf ds-channel-Ifindex { type cl-pma:channel-index; mandatory true;  }}
+		      output {
+				leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+			   	leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+			    leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}
+			    leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+				           description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+
+				list ds-ofdm-profile {
+					description " A list of all downstream OFDM profiles and their configurations on this channel.";
+				    key "profile-index";
+				    uses cl-pma:ds-ofdm-profile-attributes;
+				  } 
+			        
+		      }
+	    }
+
+    rpc get-ccap-ofdm-channels {
+      	description "Procedure to get all downstream OFDM channels currently running/operational on CCAP.";
+       	input {leaf request {type empty;}}
+      	output {
+     	  	    
+		leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+    	leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+	    leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}
+	    leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+		       description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+	    list ds-ofdm-channel {
+    		description "A list of all downstream OFDM interfaces running on this CCAP and of the profiles assigned to each.";
+    		key "channel-Ifindex";
+    		leaf channel-Ifindex { type cl-pma:channel-index; mandatory true;  }
+    		uses cl-pma:ds-ofdm-channel-attributes;
+  		}
+      }
+    }// rpc get-ccap-ofdm-channels
+    
+    
+    
+	//--------------------------------------------------------  US -------------
+	//-------------------------------------------------------- **** -------------
+    
+    rpc run-us-rxmer-test {
+	      description "Procedure to trigger an US RxMER per Subcarrier in the CCAP.";
+	       input {uses cl-pma:us-rxmer-initiate;  }
+	        
+	       output {
+	    	  	    leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+			    	leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+				    leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}
+		   			leaf rpc-transcation-id {
+		   				type cl-pma:rpc-transction-id-type; 
+		   				description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+
+                    uses cl-pma:us-rxmer-test-results;
+       }
+	}
+    
+    rpc run-us-oudp {
+	      description "Procedure to trigger an OUDP (OFDMA Profile Test) in the CCAP. CCAP returns results of OUDP.";
+	       input {uses cl-pma:oudp-initiate;}  
+	    // Comment PMA WG Call  : Oudp is a long procedure,   Should this return  an URL ?.  Based on timers etc   
+	    // this could work for Netconf...  not for RESTConf...  
+	       output {
+	    		    leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+			    	leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+				    leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}
+		   			leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+					           description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+		   			uses cl-pma:oudp-test-results;  
+	         }
+	}
+    
+    rpc run-us-probe-test {
+	      description "Procedure to trigger an active /quite probe test in the CCAP. CCAP returns results of the probe.";
+	       input {uses cl-pma:probe-initiate;}
+	       output {
+	         		leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+			    	leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+				    leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}
+		   			
+		   			leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+					         description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+                    uses cl-pma:probe-test-results;
+	        }
+	}
+    
+    rpc run-us-triggered-spectrum-cap-test {
+	      description "Procedure to trigger an US spectrum capture in the CCAP. CCAP returns results of the probe.";
+	       input {uses cl-pma:us-trig-spec-cap-initiate;    }  
+	       output {
+	    		    leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+			    	leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+				    leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}
+		   			leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+					           description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+                    uses cl-pma:us-trig-spec-cap-test-results;
+		   }
+	}
+  
+    
+    
+    rpc assign-single-iuc-to-cm-list {  
+	      description "Procedure to add an active running IUC for a group of CMs associated with an OFDMA channel on a CMTS.
+	    	           CMTS RPC will return immediately. Notification at a later time from CMTS that assignment is complete";
+	       input {
+				leaf-list cm-mac { type yang:mac-address; }
+				leaf us-channel-Ifindex { type cl-pma:channel-index; mandatory true;  }
+				leaf profile-index { type cl-pma:ofdma-iuc-index; mandatory true;}
+	      }
+	      output {
+	    	    leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+	    	    leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+				leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}	
+				leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+				         description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+	     }
+  }
+  
+  rpc assign-list-of-iucs-to-cm {  
+	      description "Procedure to add the set of all running data IUCs for a CM associated with an OFDMA channel on a CCAP.
+	    	           CMTS RPC will return immediately. Notification at a later time from CMTS that assignment is complete";
+	      input {
+				leaf cm-mac { type yang:mac-address; }
+				leaf us-channel-Ifindex { type cl-pma:channel-index; mandatory true;  }
+				leaf-list profile-index { type cl-pma:ofdma-iuc-index; }
+	      }
+	      output {
+	    	    leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+	    	    leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+				leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}	
+				leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+										description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+	      }
+  }
+    
+    
+    
+    rpc get-cm-ofdma-iucs {
+	      description  "Procedure to get running IUC assignments for a single CM from a CCAP. 
+	    	  			Indicates which of the IUC(s) are currently 'active' (currently forwarding data).";
+	      input {
+				leaf cm-mac {
+					  type yang:mac-address;
+					  mandatory true;
+				}
+	      }
+	      output {
+	    	  leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+		    	leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+			    leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}	
+			    leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+				       description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+	    	  list cm-ofdma-iucss {
+					  key us-channel-Ifindex;
+					  leaf us-channel-Ifindex { type cl-pma:channel-index; mandatory true;  }
+                      leaf-list iuc-index { type cl-pma:ofdma-iuc-index; }
+				}
+
+	      }
+    }
+
+    rpc get-ccap-ofdma-iucs {
+	      description "Procedure to get all OFDMA IUCs (and defintions) currently on CCAP: per channel ";
+	      input {
+	    	  leaf us-channel-Ifindex { type cl-pma:channel-index; mandatory true;  }
+		  }
+	      output {
+	    	  leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+		      leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+			  leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}	
+			  leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+				description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+	    	  container ofdma-iucs {
+				  description " A list of all downstream OFDMA IUCss and their configurations on this CCAP.";
+				  list us-ofdma-iuc {
+				    description "  The configuration of a single downstream OFDMA IUC on this CCAP.";
+				    key "iuc-index";
+				    uses cl-pma:us-ofdma-iuc-attributes;
+				  } 
+		        }
+	      }
+    }
+
+
+    rpc get-ccap-ofdma-channels {
+      	description "Procedure to get all upstream OFDMA channels currently running/operational on CCAP with IUCs.";
+       	input {
+	 			leaf request {	type empty;}
+		}
+      	output {
+      		leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+	    	leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+		    leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}
+		    leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+			            description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+			container us-ofdma-channels {
+		  		description "A list of all upstream OFDMA interfaces running on this CCAP.";
+		  		list us-ofdma-channel {
+		    		description "A single upstream OFDMA channel on this CCAP with its assigned IUCss (by index).";
+		    		key "IfIndex";
+		    		uses cl-pma:us-ofdma-channel-attributes;
+		  		}
+			}
+      }
+    }// rpc get-ccap-ofdm-channels
+
+
+    rpc get-ccap-ofdma-channel-iuc-cms {
+
+      description  "Procedure to get all CMs associated with an OFDMA UIC from a CCAP.";
+
+      input {
+			leaf us-ofdma-channel-index { type cl-pma:channel-index; mandatory true;  }
+	
+			leaf us-ofdma-channel-iuc-index {
+			  type cl-pma:ofdma-iuc-index;
+			  mandatory true;
+			}
+	   }   
+	   output {
+		    leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+	    	leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+		    leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}
+		    leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+			         description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+			list us-ofdma-channel-iuc-cms {
+			  key cm-mac;
+			  leaf cm-mac {    type yang:mac-address;   mandatory true;  }
+				}
+      }
+    }// rpc get-ccap-ofdma-channel-iuc-cms
+    
+    
+    rpc get-rpc-status {
+
+        description  "Procedure to check on a previously run rpc, based on transation ID.";
+
+        input {
+  		    leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+		         description "RPC transcation ID returned previously by the CMTS, ";}
+  		}  
+  	   output {
+  		    leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+  	    	leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+  		    leaf timestamp { type yang:date-and-time;  description "RPC timestamp";}
+  		    leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+  			         description "RPC transcation ID on which Status was requested by PMA";}
+        }
+     } // rpc 
+    
+    
+    notification cm-event {
+        description "A notification to describe if a CM is online or offline";
+         leaf cm-mac-address { type yang:mac-address;mandatory true;}
+         leaf cm-status {  type cl-pma:status-type;mandatory true; } //online vs offline
+         leaf-list ofdm-channel-Ifindex { type cl-pma:channel-index;  }  // any associated OFDM channel
+         leaf-list ofdma-channel-Ifindex { type cl-pma:channel-index;  }  // any associated OFDMA channel
+ 		 
+    }//notification cm-event
+
+    
+    notification ds-profile-assignment-event {
+        description "A notification to inform PMA about completion of rpcs which assign DS profiles , which may take some time to complete";
+        leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; description "RPC transcation ID previously created by the CMTS for an RPC";}
+        leaf completed-rpc-name { type string; mandatory true; description "RPC (name) which was completed"; }
+     	leaf rpc-status {  type cl-pma:status-type;mandatory true; } //success vs fail
+     	leaf completed-rpc-timestamp {  type yang:date-and-time; mandatory true; description "RPC (timestamp): completion time"; }
+        leaf ds-channel-Ifindex { type cl-pma:channel-index; mandatory true;  }
+     	leaf-list cms-assigned-in-rpc { type yang:mac-address;  description "RPC ran on these CMs "; }    
+
+     	 
+    }//notification 
+    
+    notification us-iuc-assignment-event {
+        description "A notification to inform PMA about completion of rpcs which assign  US IUCs, which may take some time to complete";
+        leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; description "RPC transcation ID previously created by the CMTS for an RPC";}
+        leaf completed-rpc-name { type string; mandatory true; description "RPC (name) which was completed"; }
+     	leaf rpc-status {  type cl-pma:status-type;mandatory true; } //success vs fail
+     	leaf completed-rpc-timestamp {  type yang:date-and-time; mandatory true; description "RPC (timestamp): completion time"; }
+        leaf us-channel-Ifindex { type cl-pma:channel-index; mandatory true;  }
+     	leaf-list cms-assigned-in-rpc { type yang:mac-address;  description "RPC ran on these CMs "; }    
+
+     	 
+    }//notification
+    
+    
+    notification ds-opt-rx-mer-results {
+	       description	"notification to return an OPT (OFDMA Profile Test)  results from a CMTS  ";      
+           leaf completed-rpc-name { type string; mandatory true; description "RPC (name) which was completed"; }
+           leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+		   leaf return-status {  type cl-pma:status-string; description "RPC return status";	     }
+           leaf completed-rpc-timestamp {  type yang:date-and-time; mandatory true; description "RPC (timestamp): completion time"; }
+		   leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+                      description "RPC transcation ID previously returned by the CMTS";}
+           
+		   uses cl-pma:opt-response-msg;
+	}
+
+    notification us-rxmer-results {
+	      description "notification to return an US RxMER per Subcarrier test from  the CCAP.";
+	      leaf completed-rpc-name { type string; mandatory true; description "RPC (name) which was completed"; }
+          leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+		  leaf return-status { type cl-pma:status-string; description "RPC return status"; }   
+	      leaf completed-rpc-timestamp {  type yang:date-and-time; mandatory true; description "RPC (timestamp): completion time"; }
+		  leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+		   				description "RPC transcation ID returned by the CMTS, used later in the notification to the PMA";}
+          uses cl-pma:us-rxmer-test-results;
+       
+	}
+
+    notification us-oudp-results {
+	       description	"notification to return an US OUDP  results from a CMTS  ";      
+           leaf completed-rpc-name { type string; mandatory true; description "RPC (name) which was completed"; }
+           leaf rpc-status {  type cl-pma:status-type;mandatory true; } // inprogress vs  success vs fail
+		   leaf return-status {  type cl-pma:status-string; description "RPC return status";	     }
+           leaf completed-rpc-timestamp {  type yang:date-and-time; mandatory true; description "RPC (timestamp): completion time"; }
+		   leaf rpc-transcation-id {type cl-pma:rpc-transction-id-type; 
+                      description "RPC transcation ID previously returned by the CMTS";}
+		   uses cl-pma:oudp-test-results;
+	}
+
+    
+
+
+
+    notification error-message {
+        description "A generic notification to pass upstream any errors  
+							CM CRC/FEC errors beyond a threshold. 
+							CM-STATUS  like message ,  e.g. partial service
+							Change in configuration  
+							Channel add delete ";
+          leaf cm-mac-address { type yang:mac-address;mandatory true;}
+          leaf channel-Ifindex { type cl-pma:channel-index; mandatory true;  }
+          leaf event-id {type int32 { range "1 .. max";}  mandatory true;}
+          leaf error-message {type string; mandatory true;}
+		  leaf profile-index { type uint8; } // OFDM profile or OFDMA IUC
+	      leaf fec-uncorrectables {type uint64;}
+	      leaf fec-correctables {type uint64;}
+     }//notification error-message
+    
+   
+    
+ 
+} // module pma
