@@ -87,6 +87,10 @@ module Cisco-IOS-XR-ethernet-lldp-oper {
               description
                 "Detailed information about a LLDP neighbor
                 entry";
+
+              // FRINX: ADD KEY (netconf testtool)
+              key "device-id";
+
               leaf device-id {
                 type string;
                 description "The neighboring device identifier";
@@ -106,6 +110,10 @@ module Cisco-IOS-XR-ethernet-lldp-oper {
               description
                 "Detailed information about a LLDP neighbor
                 entry";
+
+              // FRINX: ADD KEY (netconf testtool)
+              key "device-id";
+
               leaf interface-name {
                 type xr:Interface-name;
                 description "The interface name";
@@ -125,6 +133,10 @@ module Cisco-IOS-XR-ethernet-lldp-oper {
               description
                 "Brief information about a LLDP neighbor
                 entry";
+
+              // FRINX: ADD KEY (netconf testtool)
+              key "device-id";
+
               leaf interface-name {
                 type xr:Interface-name;
                 description "The interface name";
