@@ -36,10 +36,10 @@
       "Initial revision applicable to IOS-XR 6.4.1";
   }
 
-
-  deviation /oc-lacp:lacp/oc-lacp:interfaces/oc-lacp:interface/oc-lacp:config/oc-lacp:name {
-    deviate not-supported;
-  }
+// FRINX commented out name deviation
+//  deviation /oc-lacp:lacp/oc-lacp:interfaces/oc-lacp:interface/oc-lacp:config/oc-lacp:name {
+//    deviate not-supported;
+//  }
 
   deviation /oc-lacp:lacp/oc-lacp:interfaces/oc-lacp:interface/oc-lacp:state/oc-lacp:interval {
     deviate not-supported;

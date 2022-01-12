@@ -4479,6 +4479,15 @@ module Cisco-IOS-XR-l2vpn-cfg {
         }
       }
     }
+    
+    // FRINX: added apply groups
+    container apply-groups {
+      description "apply groups";
+      leaf apply-group {
+          type xr:Cisco-ios-xr-string;
+          description "apply-group name";
+        }
+    }
 
     container pbb {
       description "L2VPN PBB Global";
