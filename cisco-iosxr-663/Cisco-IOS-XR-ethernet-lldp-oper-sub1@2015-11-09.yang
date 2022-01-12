@@ -154,10 +154,7 @@ submodule Cisco-IOS-XR-ethernet-lldp-oper-sub1 {
     description "LLDP Org Def TLV entry";
 
     list lldp-org-def-tlv-entry {
-      description "lldp org def tlv entry";
-      // FRINX: ADD KEY (netconf testtool)
-      key "oui";
-
+      description "Next Org Def TLV entry in list";
       leaf oui {
         type uint32;
         description "Organizationally Unique Identifier";
@@ -181,7 +178,7 @@ submodule Cisco-IOS-XR-ethernet-lldp-oper-sub1 {
     description "LLDP Unknown TLV entry";
 
     list lldp-unknown-tlv-entry {
-      description "lldp unknown tlv entry";
+      description "Next unknown TLV entry in list";
       leaf tlv-type {
         type uint8;
         description "Unknown TLV type";
@@ -265,9 +262,7 @@ submodule Cisco-IOS-XR-ethernet-lldp-oper-sub1 {
     description "LLDP Address entry";
 
     list lldp-addr-entry {
-      description "lldp addr entry";
-      // FRINX: ADD KEY (netconf testtool)
-      key "if-num";
+      description "Next address entry in list";
 
       container address {
         description "Network layer address";
@@ -341,9 +336,7 @@ submodule Cisco-IOS-XR-ethernet-lldp-oper-sub1 {
     description "LLDP neighbor info";
 
     list lldp-neighbor {
-      description "lldp neighbor";
-      // FRINX: ADD KEY (netconf testtool)
-      key "device-id";
+      description "Next neighbor in the list";
 
       container detail {
         description "Detailed neighbor info";

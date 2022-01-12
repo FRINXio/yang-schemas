@@ -98,6 +98,15 @@ module Cisco-IOS-XR-ipv4-vrrp-cfg {
       list interface {
         key "interface-name";
         description "The interface being configured";
+        
+        // FRINX: added apply groups
+        container apply-groups {
+          description "apply groups";
+          leaf apply-group {
+              type xr:Cisco-ios-xr-string;
+              description "apply-group name";
+            }
+        }
 
         container ipv6 {
           description "IPv6 VRRP configuration";

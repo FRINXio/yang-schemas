@@ -129,6 +129,15 @@ module Cisco-IOS-XR-ifmgr-cfg {
     list interface-configuration {
       key "active interface-name";
       description "The configuration for an interface";
+      
+      // FRINX: added apply groups
+      container apply-groups {
+        description "apply groups";
+        leaf apply-group {
+          type xr:Cisco-ios-xr-string;
+          description "apply-group name";
+        }
+      }
 
       container dampening {
         description
