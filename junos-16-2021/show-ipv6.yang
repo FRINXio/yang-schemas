@@ -3,7 +3,7 @@
  * All rights reserved.
  */
 
-// FRINX use empty string namespace
+// FRINX use ietf params namespace
  module show-ipv6 {
   namespace "urn:ietf:params:xml:ns:netconf:base:1.0";
   prefix jrpc;
