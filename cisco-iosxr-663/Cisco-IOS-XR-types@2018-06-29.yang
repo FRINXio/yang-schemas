@@ -179,10 +179,9 @@ module Cisco-IOS-XR-types {
     description "Port number of range from 1 to 65535";
   }
 
+  // FRINX Delete pattern '[a-zA-Z0-9._/-]+'; from Interface-name
   typedef Interface-name {
-    type string {
-      pattern '[a-zA-Z0-9._/-]+';
-    }
+    type string;
     description "An interface name specifying an interface type and 
                  instance.
                  Interface represents a string defining an interface
