@@ -322,11 +322,9 @@ module nokia-types-qos {
         }
         description "Specifies the identification number of an ingress queue.";
     }
-
+ // FRINX delete range 1..8
     typedef egress-queue-id {
-        type int32 {
-            range "1..8";
-        }
+        type int32;
         description "Specifies the identification number of an egress queue.";
     }
 
