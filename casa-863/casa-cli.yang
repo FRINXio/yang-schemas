@@ -1,0 +1,151 @@
+
+module casa-cli {
+    yang-version 1;
+  
+    namespace "urn:casa:params:xml:ns:yang:casa-cli"; 
+    prefix "casa-cli";
+
+    import ietf-yang-types {
+        prefix yang;
+    }
+	
+    organization "Casa Systems Inc";
+
+    contact 
+        "Casa Systems Inc.     
+         100 Old River Road, Suite 100             
+         Andover, MA 01810      
+         TEL: +1 978 688 6706      
+         FAX: +1 978 688 6584        
+         E-mail: support@casa-systems.com";
+    
+    description
+        "Run CCAP CLI Command";
+
+    revision "2021-04-05" {
+        description "Initial version";
+    }
+
+    rpc casa-cli-run {
+        description "Run CCAP CLI command. The netconf rpc does not verify CLI format, 
+                     user must make sure the input CLI is correct. And netconf rpc
+                     fork process to run CLI command, and return immediately, 
+                     it does not wait until CLI command finish.
+                     Please check casa-cli-state to confirm if the command finish.
+                    ";
+        input {
+            choice command-type {
+                case command {
+                    leaf command {
+                        type string;
+                        description "The CLI command to be run in CCAP";
+                        mandatory true;
+                    }
+                }
+                case stop-cmd {
+                    leaf stop-cmd {
+                        type uint64;
+                        description "Stop the running CLI command by cmd-rsp-msg-id.
+                                     If the cmd-rsp-msg-id is 0, it stop all of the running rpc casa-cli-run command.
+                                    ";
+                        mandatory true;
+                    }
+                }
+            }
+        }
+        output {
+            leaf rpc-status {
+                type enumeration {
+                    enum success { value 3; }
+                    enum fail    { value 4; }
+                }
+                mandatory true;
+            }
+            leaf return-status {
+                type string; 
+                description "If rpc-status is fail, return-status includes some error description. 
+                             If rpc-status is success, return-status return operation success.";
+                mandatory true;
+            }
+            leaf timestamp {
+                type yang:date-and-time;
+                description "RPC response timestamp";
+                mandatory true;
+            }
+            leaf cmd-rsp-msg-id {
+                type uint64;
+                description "This id is used to query CLI command result by rpc casa-cli-state.
+                             If rpc-status is success, the id is non-zero integer.
+                             If rpc-status is not success, the id equals to zero. 
+                             And rpc casa-cli-run stop-cmd always return zero cmd-rsp-msg-id.
+                            ";
+                mandatory true;
+            }
+        }
+    }
+
+    rpc casa-cli-state {
+        description "Run status for rpc casa-cli-run. The old CLI command result will be cleared periodically, 
+                     so make sure to check CLI command state in time.  
+                    ";
+        input {
+            leaf cmd-rsp-msg-id {
+                type uint64;
+                description "This id is responsed by rpc casa-cli-run, it is used to query CLI command result.
+                             The valid id is non-zero integer, it return cmd-rsp-msg if the result exist.
+                            ";
+                mandatory true;
+            }
+        }
+        output {
+            leaf rpc-status {
+                type enumeration {
+                    enum success { value 3; }
+                    enum fail    { value 4; }
+                }
+                mandatory true;
+            }
+            leaf return-status {
+                type string; 
+                description "If rpc-status is fail, return-status includes some error description. 
+                             If rpc-status is success, return-status return operation success.";
+                mandatory true;
+            }
+            leaf timestamp {
+                type yang:date-and-time;
+                description "RPC response timestamp";
+                mandatory true;
+            }
+            leaf cmd-state {
+                type enumeration {
+                    enum running { value 1; }
+                    enum done    { value 2; }
+                    enum stopped { value 3; }
+                    enum unknown { value 4; }
+                }
+                description "The rpc casa-cli-run state, only valid when rpc-status is success.
+                             running - CLI command is running;
+                             done    - CLI command is finished;
+                             stopped - CLI command is stopped by rpc casa-cli-run stop-cmd;
+                             unknown - CLI command result does not exist, return unknown status.
+                            ";
+            }
+            leaf cmd-begin-time {
+                type yang:date-and-time;
+                description "The time that CLI command begin. If cmd-state is not running or done, the begin time is invalid.";
+            }
+            leaf cmd-end-time {
+                type yang:date-and-time;
+                description "The time that CLI command finish. If cmd-state is not done, the end time is invalid.";
+            }
+            leaf cmd-req-msg {
+                type string;
+                description "The request message when run CLI command. If cmd-state is not running or done, the request message is invalid.";
+            }
+            leaf cmd-rsp-msg {
+                type string;
+                description "The response message after run CLI command. If cmd-state is not running or done, the response message is invalid.";
+            }
+        }
+    }
+}
