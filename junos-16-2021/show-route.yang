@@ -302,35 +302,37 @@
            type operation_type:ipaddr;
          }
        }
-       container receive-protocol {
-         leaf receive-protocol-name {
-           description "Name of dynamic routing protocol";
-           type enumeration {
-             enum "bgp" {
-               description "Border Gateway Protocol";
-             }
-             enum "rip" {
-               description "Routing Information Protocol";
-             }
-             enum "ripng" {
-               description "Routing Information Protocol for IPv6";
-             }
-             enum "dvmrp" {
-               description "Distance Vector Multicast Routing Protocol";
-             }
-             enum "pim" {
-               description "Protocol Independent Multicast";
-             }
-             enum "msdp" {
-               description "Multicast Source Discovery Protocol";
-             }
+       // FRINX comment out container receive-protocol begin
+       // container receive-protocol {
+       leaf receive-protocol-name {
+         description "Name of dynamic routing protocol";
+         type enumeration {
+           enum "bgp" {
+             description "Border Gateway Protocol";
+           }
+           enum "rip" {
+             description "Routing Information Protocol";
+           }
+           enum "ripng" {
+             description "Routing Information Protocol for IPv6";
+           }
+           enum "dvmrp" {
+             description "Distance Vector Multicast Routing Protocol";
+           }
+           enum "pim" {
+             description "Protocol Independent Multicast";
+           }
+           enum "msdp" {
+             description "Multicast Source Discovery Protocol";
            }
          }
-         leaf peer {
-           description "IP address of neighbor";
-           type operation_type:ipaddr;
-         }
        }
+       leaf peer {
+         description "IP address of neighbor";
+         type operation_type:ipaddr;
+       }
+       // FRINX comment out container receive-protocol end
+       // }
        leaf rd-prefix {
          description "Route distinguisher with ip prefix (rd:prefix)";
          type string;
