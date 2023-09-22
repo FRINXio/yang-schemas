@@ -112,7 +112,7 @@ module Cisco-IOS-XR-ethernet-lldp-oper {
                 entry";
 
               // FRINX: ADD KEY (netconf testtool)
-              key "device-id";
+              key "device-id interface-name";
 
               leaf interface-name {
                 type xr:Interface-name;
