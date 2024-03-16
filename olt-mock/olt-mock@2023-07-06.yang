@@ -1,0 +1,86 @@
+module olt-mock {
+
+yang-version 1;
+
+namespace "elisa:polystar:yang:olt:mock";
+
+prefix olt-mock;
+
+
+description "Mock yang for an OLT";
+
+revision "2023-07-06" {
+ description "Toaster module in progress.";
+}
+
+container equipment {
+ list ont-interface {
+  key "id";
+
+  leaf id {
+   type string;
+  }
+
+  leaf description {
+   type string;
+  }
+
+  leaf serial {
+   type string;
+  }
+  
+  container slots {
+   list slot {
+    
+    key "id";
+
+    leaf id {
+     type string;
+    }
+    
+    leaf description {
+     type string;
+    }
+    
+   }
+  }
+ }
+
+}
+
+container vlans {
+
+ list vlan {
+  key "id";
+
+  leaf id {
+   type uint32;
+  }
+ }
+}
+
+container ont {
+ list interface {
+
+  key "id";
+
+  leaf id {
+   type string;
+  }
+
+  leaf qos-profile {
+   type string;
+  }
+
+  leaf vlan {
+   type uint32;
+  }
+
+  leaf admin-state {
+   type boolean;
+  }
+ }
+
+}
+
+}
