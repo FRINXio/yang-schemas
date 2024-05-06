@@ -1,0 +1,56 @@
+name: Docker
+
+on:
+  push:
+    # Publish `main` and `stable` as Docker `latest` image.
+    branches:
+      - 'main'
+      - '[0-9]+.X-stable'
+
+    # Publish `v1.2.3` tags as releases.
+    tags:
+      - 'v*'
+      - 'v[0-9]+.[0-9]+.[0-9]-stable'
+
+env:
+  IMAGE_NAME: frinx/yang-schemas
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set tag for latest image
+        if: github.ref_type == 'branch' && startsWith(github.ref, 'refs/heads/main')
+        run: |
+          echo "IMAGE_TAG=$(echo 'latest')" >> "$GITHUB_ENV"
+
+      - name: Set tag for stable-latest image
+        if: github.ref_type == 'branch' && endsWith(github.ref, '-stable')
+        run: |
+          echo "IMAGE_TAG=$(echo 'stable-latest')" >> "$GITHUB_ENV"
+
+      - name: Set tag for stable-release image
+        if: github.ref_type == 'tag' && endsWith(github.ref, '-stable')
+        run: |
+          echo "IMAGE_TAG=$(echo $GITHUB_REF | cut -d / -f 3 | sed -e 's/^v//' | sed -e 's/-stable//')" >> "$GITHUB_ENV"
+
+      - name: Set tag for release image
+        if: ${{ github.ref_type == 'tag' && !endsWith(github.ref, '-stable') }}
+        run: |
+          echo "IMAGE_TAG=$(echo $GITHUB_REF | cut -d / -f 3 | sed -e 's/^v//')" >> "$GITHUB_ENV"
+
+      - name: Build image
+        run: docker build . --file Dockerfile --build-arg git_commit=$(git rev-parse HEAD) --tag $IMAGE_NAME:${IMAGE_TAG}
+
+      - name: Log into docker hub
+        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+
+      - name: Push image
+        run: |
+          docker push $IMAGE_NAME:${IMAGE_TAG}
