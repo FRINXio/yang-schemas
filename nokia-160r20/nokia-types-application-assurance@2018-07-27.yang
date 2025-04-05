@@ -1,0 +1,638 @@
+module nokia-types-application-assurance {
+
+    yang-version "1.1";
+
+    namespace "urn:nokia.com:sros:ns:yang:sr:types-aa";
+
+    prefix "types-aa";
+
+    import nokia-sros-yang-extensions     { prefix "sros-ext"; }
+    import nokia-types-sros               { prefix "types-sros"; }
+
+
+    sros-ext:sros-major-release "rel16";
+
+    organization "Nokia";
+
+    contact
+        "Nokia SR OS Support
+         Web: <http://www.nokia.com>";
+
+    description
+        "Common application assurance data types used in the SR OS management system.
+
+         Copyright 2016 Nokia. All rights reserved. Reproduction of this document
+         is authorized on the condition that the foregoing copyright notice is included.
+
+         This nokia-types-application-assurance YANG module embodies Nokia's proprietary
+         intellectual property. Nokia retains all title and ownership in the
+         specification, including any revisions.
+
+         Nokia grants all interested parties a non-exclusive license to use
+         and distribute an unmodified copy of this specification in connection with
+         management of Nokia products, and without fee, provided this
+         copyright notice and license appear on all copies.
+
+         This specification is supplied `as is', and Nokia makes no warranty,
+         either express or implied, as to the use, operation, condition, or performance
+         of the specification.";
+
+    revision "2018-07-27";
+
+    typedef isa-aa-grp-id {
+        type uint32 {
+            range "1..255";
+        }
+        description "isa-aa-grp-id is a group of ISA MDAs Identifier.";
+    }
+
+    typedef aa-grp-part-id {
+        type uint32 {
+            range "0..65535";
+        }
+        description "AA partition within an AA group.";
+    }
+
+    typedef aa-bit-rate-limit {
+        type union {
+            type int32 {
+                range "1..40000";
+            }
+            type enumeration {
+                enum "max"                          { value -1; }
+            }
+        }
+        description "A bit rate limit expressed in megabits per second.";
+    }
+
+    typedef aa-datapath-cpu-limit {
+        type union {
+            type int32 {
+                range "0..100";
+            }
+            type enumeration {
+                enum "max"                          { value -1; }
+            }
+        }
+        description "Datapath CPU traps limit as a percentage. max = disabled";
+    }
+
+    typedef aa-flow-setup-limit {
+        type union {
+            type int32 {
+                range "1..800000";
+            }
+            type enumeration {
+                enum "max"                          { value -1; }
+            }
+        }
+        description "Limit for flow setup rate traps. max = disabled.";
+    }
+
+    typedef aa-packet-rate-limit {
+        type union {
+            type int32 {
+                range "1..59523808";
+            }
+            type enumeration {
+                enum "max"                          { value -1; }
+            }
+        }
+        description "Limit for packet rate traps. max = disabled.";
+    }
+
+    typedef ipv4-address-or-ipv6-address-and-mask {
+        type union {
+            type types-sros:ipv4-address;
+            type types-sros:ipv6-address-and-mask;
+        }
+        description "An IP address and mask.";
+    }
+
+    typedef permit-deny-action {
+        type enumeration {
+            enum "deny"                         { value 1; }
+            enum "permit"                       { value 2; }
+        }
+        description "AA permit or deny action of an operation.";
+    }
+
+    typedef http-redir-flow-type {
+        type enumeration {
+            enum "dropped-flows"                { value 1; }
+            enum "admitted-flows"               { value 2; }
+        }
+        description "represents the types flows that can be redirected.";
+    }
+
+    typedef match-operator {
+        type enumeration {
+            enum "eq"                           { value 1; }
+            enum "neq"                          { value 2; }
+        }
+        description "represents matching operator of charactersitics in application-qos-policy entry.";
+    }
+
+    typedef policer-type {
+        type enumeration {
+            enum "single-bucket-policer"        { value 1; }
+            enum "dual-bucket-policer"          { value 2; }
+            enum "flow-rate-policer"            { value 3; }
+            enum "flow-count-policer"           { value 4; }
+        }
+        description "AA policer type.";
+    }
+
+    typedef policer-granulariy {
+        type enumeration {
+            enum "system"                       { value 1; }
+            enum "subscriber"                   { value 2; }
+            enum "access-network-location"      { value 3; }
+        }
+        description "AA policer granularity.";
+    }
+
+    typedef policer-action {
+        type enumeration {
+            enum "permit-deny"                  { value 0; }
+            enum "priority-mark"                { value 1; }
+        }
+        default "permit-deny";
+        description "AA policer action to premit/deny or mark in/out of profile.";
+    }
+
+    typedef policer-ir {
+        type union {
+            type int32 {
+                range "1..100000000";
+            }
+            type enumeration {
+                enum "max"                          { value -1; }
+            }
+        }
+        units "kbps";
+        default "max";
+        description "AA policer information rate in kbps. The value -1 means maximum rate.";
+    }
+
+    typedef policer-burst-size {
+        type int32 {
+            range "0..131071";
+        }
+        units "KB";
+        default "0";
+        description "The amount of burst capacity assigned to a policer in kilo bytes.";
+    }
+
+    typedef policer-flow-rate {
+        type union {
+            type int32 {
+                range "1..100000000";
+            }
+            type enumeration {
+                enum "max"                          { value -1; }
+            }
+        }
+        units "flows per second";
+        default "max";
+        description "AA policer flow rate in flows per seconds. The value -1 means maximum rate.";
+    }
+
+    typedef policer-flow-burst-size {
+        type int32 {
+            range "0..131071";
+        }
+        units "flows";
+        default "0";
+        description "The amount of flow burst capacity assigned to a policer.";
+    }
+
+    typedef policer-flow-count-limit {
+        type union {
+            type int32 {
+                range "0..100000000";
+            }
+            type enumeration {
+                enum "max"                          { value -1; }
+            }
+        }
+        units "flows per second";
+        default "max";
+        description "AA policer flow count in flows per second. The value -1 means maximum rate while 0 means block flows.";
+    }
+
+    typedef cflowd-sample-rate {
+        type uint32 {
+            range "0..1000";
+        }
+        units "flows per second";
+        description "AA cflowd per flow sampling rate";
+    }
+
+    typedef cflowd-export-type {
+        type enumeration {
+            enum "volume"                       { value 1; }
+            enum "tcp-performance"              { value 2; }
+            enum "rtp-performance"              { value 3; }
+            enum "comprehensive"                { value 4; }
+        }
+        description "AA exported cflowd record type.";
+    }
+
+    typedef cflowd-measure-type {
+        type enumeration {
+            enum "tcp-performance"              { value 1; }
+            enum "rtp-performance"              { value 2; }
+            enum "comprehensive"                { value 3; }
+        }
+        description "AA cflowd flow based measurement type.";
+    }
+
+    typedef cflowd-export-override-type {
+        type enumeration {
+            enum "none"                         { value 0; }
+            enum "mobile"                       { value 2; }
+        }
+        description "AA cflowd export override type.";
+    }
+
+    typedef buffer-pool-reserved-percentage {
+        type union {
+            type int32 {
+                range "0..100";
+            }
+            type enumeration {
+                enum "default"                      { value -1; }
+            }
+        }
+        description
+            "configure the percentage of the buffer pool reserved for high priority traffic.
+             A value of -1 (default) implies reserved CBS should be computed as the sum 
+             of the CBS requested by the entities using this pool.";
+    }
+
+    typedef http-field-encoding {
+        type enumeration {
+            enum "md5"                          { value 1; }
+            enum "rc4"                          { value 2; }
+            enum "certificate"                  { value 3; }
+            enum "crc4-md5-base64"              { value 4; }
+        }
+        description
+            "AA HTTP enrichment field encoding types. It pecifies the type of encoding that will be used
+             on the field. Only the field value is encoded, not the field name.";
+    }
+
+    typedef certificate-file {
+        type string {
+            length "1..95";
+        }
+        description "A certificate file name without slashes or colon.";
+    }
+
+    typedef wa-shared-buffer-utilization-high {
+        type union {
+            type int32 {
+                range "1..100";
+            }
+            type enumeration {
+                enum "max"                          { value -1; }
+            }
+        }
+        units "percent";
+        description "Configure weighted average shared buffer utilization high watermark.";
+    }
+
+    typedef wa-shared-buffer-utilization-low {
+        type types-sros:percent {
+            range "0..99";
+        }
+        description "Configure weighted average shared buffer utilization low watermark.";
+    }
+
+    typedef truth-value {
+        type enumeration {
+            enum "true"                         { value 1; }
+            enum "false"                        { value 2; }
+        }
+        description "Represents a truth value.";
+    }
+
+    typedef http-notif-interval {
+        type union {
+            type int32 {
+                range "1..1440";
+            }
+            type enumeration {
+                enum "one-time"                     { value 0; }
+            }
+        }
+        units "minutes";
+        default "one-time";
+        description
+            "specifies the minimum time to wait before re-inserting script URL into the
+             HTTP response for a specific subscriber. A value of 0 specifies the insertion 
+             of the script URL is to occur one-time.";
+    }
+
+    typedef isa-aa-group-subscale {
+        type enumeration {
+            enum "residential"                  { value 0; }
+            enum "vpn"                          { value 1; }
+            enum "mobile-gateway"               { value 2; }
+            enum "lightweight-internet"         { value 3; }
+            enum "residential-8k"               { value 4; }
+            enum "residential-16k"              { value 5; }
+            enum "residential-32k"              { value 6; }
+            enum "residential-64k"              { value 7; }
+            enum "vpn-1k"                       { value 8; }
+            enum "vpn-2k"                       { value 9; }
+            enum "vpn-4k"                       { value 10; }
+            enum "vpn-8k"                       { value 11; }
+        }
+        description
+            "The various kinds of aa-sub-scale that are supported. This impacts the maximum number
+             of AA subscribers and the corresponding policies that can be specified.";
+    }
+
+    typedef isa-generation-for-aa-grp {
+        type uint32 {
+            range "1..2";
+        }
+        description
+            "The value specifies the minimum ISA Generation allowed in this group.
+             On any HSR platform, the minimum ISA Generation has a value of 2.";
+    }
+
+    typedef isa-fail-to-mode {
+        type enumeration {
+            enum "fail-to-wire"                 { value 0; }
+            enum "fail-to-open"                 { value 1; }
+        }
+        description "specifies how the traffic is handled when there is no available ISA-AA cards.";
+    }
+
+    typedef isa-group-stats-type {
+        type enumeration {
+            enum "performance"                  { value 1; }
+        }
+        description "The ISA AA group statistics types.";
+    }
+
+    typedef isa-mda-role {
+        type enumeration {
+            enum "primary"                      { value 0; }
+            enum "backup"                       { value 1; }
+        }
+        description "The AA ISA mda role.";
+    }
+
+    typedef stat-type {
+        type enumeration {
+            enum "unknown"                      { value 0; }
+            enum "protocol"                     { value 1; }
+            enum "application"                  { value 2; }
+            enum "app-group"                    { value 3; }
+            enum "charging-group"               { value 4; }
+        }
+        description "The various kinds of statistics objects used in Application Assurance.";
+    }
+
+    typedef partition-stats-category {
+        type enumeration {
+            enum "protocol"                     { value 1; }
+            enum "application"                  { value 2; }
+            enum "app-group"                    { value 3; }
+            enum "aa-sub"                       { value 4; }
+            enum "aa-sub-study-protocol"        { value 5; }
+            enum "aa-sub-study-application"     { value 6; }
+            enum "aa-partition"                 { value 7; }
+            enum "aa-admit-deny"                { value 8; }
+        }
+        description "AA partition statistics categories.";
+    }
+
+    typedef fragment-drop {
+        type enumeration {
+            enum "all"                          { value 1; }
+            enum "out-of-order"                 { value 2; }
+        }
+        description "specifies which fragments if any must be dropped as policy.";
+    }
+
+    typedef vlan-id {
+        type int32 {
+            range "1..4094";
+        }
+        description "VLAN Id";
+    }
+
+    typedef tcp-segment-size {
+        type int32 {
+            range "160..10240";
+        }
+        description "TCP MSS adjust size.";
+    }
+
+    typedef traffic-direction {
+        type enumeration {
+            enum "sub-to-net"                   { value 0; }
+            enum "net-to-sub"                   { value 1; }
+            enum "both"                         { value 2; }
+        }
+        description "AA flow setup direction.";
+    }
+
+    typedef ts-url-aa-string {
+        type union {
+            type types-sros:ts-cflash-url {
+                length "1..180";
+            }
+            type string {
+                length "1..180";
+            }
+        }
+        description
+            "URL specifies a url in the following format:
+             local-url    - [<cflash-id>/][<file-path>]
+             remote-url   - [{ftp://|tftp://}<login>:<pswd>@<remote-locn>/][<file-path>] 180 chars max
+             remote-locn  - [ <hostname> | <ipv4-address> | <ipv6-address> ]
+             ipv4-address - a.b.c.d
+             ipv6-address - x:x:x:x:x:x:x:x[-interface]
+                            x:x:x:x:x:x:d.d.d.d[-interface]
+                            x - [0..FFFF]H
+                            d - [0..255]D
+                            interface - 32 chars max, for link
+                            local addresses
+             cflash-id    - cf1:|cf1-A:|cf1-B:|cf2:|cf2-A:|cf2-B:|cf3:|cf3-A:|cf3-B:";
+    }
+
+    typedef expr-sub-string {
+        type enumeration {
+            enum "http-host"                    { value 1; }
+            enum "http-uri"                     { value 2; }
+            enum "http-referrer"                { value 3; }
+            enum "sip-ua"                       { value 4; }
+            enum "sip-uri"                      { value 5; }
+            enum "sip-mt"                       { value 6; }
+            enum "citrix-app"                   { value 7; }
+            enum "http-user-agent"              { value 8; }
+            enum "h323-product-id"              { value 9; }
+            enum "tls-cs-org-name"              { value 10; }
+            enum "tls-cs-common-name"           { value 11; }
+            enum "rtsp-host"                    { value 12; }
+            enum "rtsp-uri"                     { value 13; }
+            enum "rtsp-ua"                      { value 14; }
+            enum "rtmp-page-host"               { value 15; }
+            enum "rtmp-page-uri"                { value 16; }
+            enum "rtmp-swf-host"                { value 17; }
+            enum "rtmp-swf-uri"                 { value 18; }
+        }
+        description "AA expression substring type. ";
+    }
+
+    typedef aa-ppid-value {
+        type union {
+            type uint32 {
+                range "0..4294967295";
+            }
+            type enumeration {
+                enum "iua"                          { value 1; }
+                enum "m2ua"                         { value 2; }
+                enum "m3ua"                         { value 3; }
+                enum "sua"                          { value 4; }
+                enum "m2pa"                         { value 5; }
+                enum "v5ua"                         { value 6; }
+                enum "h.248"                        { value 7; }
+                enum "bicc/q.2150.3"                { value 8; }
+                enum "tali"                         { value 9; }
+                enum "dua"                          { value 10; }
+                enum "asap"                         { value 11; }
+                enum "enrp"                         { value 12; }
+                enum "h.323"                        { value 13; }
+                enum "q.ipc/q.2150.3"               { value 14; }
+                enum "simco"                        { value 15; }
+                enum "ddp-segment-chunk"            { value 16; }
+                enum "ddp-stream-session-control"   { value 17; }
+                enum "s1-application-protocol"      { value 18; }
+                enum "rua"                          { value 19; }
+                enum "hnbap"                        { value 20; }
+                enum "forces-hp"                    { value 21; }
+                enum "forces-mp"                    { value 22; }
+                enum "forces-lp"                    { value 23; }
+                enum "sbc-ap"                       { value 24; }
+                enum "nbap"                         { value 25; }
+                enum "x2ap"                         { value 27; }
+                enum "ircp"                         { value 28; }
+                enum "lcs-ap"                       { value 29; }
+                enum "mpich2"                       { value 30; }
+                enum "service-area-broadcast-protocol" { value 31; }
+                enum "fractal-generator-protocol"   { value 32; }
+                enum "ping-pong-protocol"           { value 33; }
+                enum "calcapp-protocol"             { value 34; }
+                enum "scripting-service-protocol"   { value 35; }
+                enum "netperfmeter-protocol-control-channel" { value 36; }
+                enum "netperfmeter-protocol-data-channel" { value 37; }
+                enum "echo"                         { value 38; }
+                enum "discard"                      { value 39; }
+                enum "daytime"                      { value 40; }
+                enum "character-generator"          { value 41; }
+                enum "3gpp-rna"                     { value 42; }
+                enum "3gpp-m2ap"                    { value 43; }
+                enum "3gpp-m3ap"                    { value 44; }
+                enum "ssh-over-sctp"                { value 45; }
+                enum "diameter-in-a-sctp-data-chunk" { value 46; }
+                enum "diameter-in-a-dtls/sctp-data-chunk" { value 47; }
+                enum "r14p.-ber-encoded-asn.1-over-sctp" { value 48; }
+                enum "webrtc-control"               { value 50; }
+                enum "domstring-last"               { value 51; }
+                enum "binary-data-partial"          { value 52; }
+                enum "binary-data-last"             { value 53; }
+                enum "domstring-partial"            { value 54; }
+                enum "3gpp-pua"                     { value 55; }
+                enum "webrtc-string-empty"          { value 56; }
+                enum "webrtc-binary-empty"          { value 57; }
+            }
+        }
+        description "Protocol Payload Identifier (PPID) value from IANA, 'SCTP Payload Protocol Identifiers'";
+    }
+
+    typedef aa-gtp-fltr-msg-value {
+        type union {
+            type int32 {
+                range "0..255";
+            }
+            type enumeration {
+                enum "echo-request"                 { value 1; }
+                enum "echo-response"                { value 2; }
+                enum "version-not-supported"        { value 3; }
+                enum "node-alive-request"           { value 4; }
+                enum "node-alive-response"          { value 5; }
+                enum "redirection-request"          { value 6; }
+                enum "redirection-response"         { value 7; }
+                enum "create-pdp-context-request"   { value 16; }
+                enum "create-pdp-context-response"  { value 17; }
+                enum "update-pdp-context-request"   { value 18; }
+                enum "update-pdp-context-response"  { value 19; }
+                enum "delete-pdp-context-request"   { value 20; }
+                enum "delete-pdp-context-response"  { value 21; }
+                enum "initiate-pdp-context-activation-request" { value 22; }
+                enum "initiate-pdp-context-activation-response" { value 23; }
+                enum "error-indication"             { value 26; }
+                enum "pdu-notification-request"     { value 27; }
+                enum "pdu-notification-response"    { value 28; }
+                enum "pdu-notification-reject-request" { value 29; }
+                enum "pdu-notification-reject-response" { value 30; }
+                enum "supported-extension-headers-notification" { value 31; }
+                enum "send-routing-information-for-gprs-request" { value 32; }
+                enum "send-routing-information-for-gprs-response" { value 33; }
+                enum "failure-report-request"       { value 34; }
+                enum "failure-report-response"      { value 35; }
+                enum "note-ms-gprs-present-request" { value 36; }
+                enum "note-ms-gprs-present-response" { value 37; }
+                enum "identification-request"       { value 48; }
+                enum "identification-response"      { value 49; }
+                enum "sgsn-context-request"         { value 50; }
+                enum "sgsn-context-response"        { value 51; }
+                enum "sgsn-context-acknowledge"     { value 52; }
+                enum "forward-relocation-request"   { value 53; }
+                enum "forward-relocation-response"  { value 54; }
+                enum "forward-relocation-complete"  { value 55; }
+                enum "relocation-cancel-request"    { value 56; }
+                enum "relocation-cancel-response"   { value 57; }
+                enum "forward-srns-context"         { value 58; }
+                enum "forward-relocation-complete-acknowledge" { value 59; }
+                enum "forward-srns-context-acknowledge" { value 60; }
+                enum "ran-information-relay"        { value 70; }
+                enum "mbms-notification-request"    { value 96; }
+                enum "mbms-notification-response"   { value 97; }
+                enum "mbms-notification-reject-request" { value 98; }
+                enum "mbms-notification-reject-response" { value 99; }
+                enum "create-mbms-context-request"  { value 100; }
+                enum "create-mbms-context-response" { value 101; }
+                enum "update-mbms-context-request"  { value 102; }
+                enum "update-mbms-context-response" { value 103; }
+                enum "delete-mbms-context-request"  { value 104; }
+                enum "delete-mbms-context-response" { value 105; }
+                enum "mbms-registration-request"    { value 112; }
+                enum "mbms-registration-response"   { value 113; }
+                enum "mbms-de-registration-request" { value 114; }
+                enum "mbms-de-registration-response" { value 115; }
+                enum "mbms-session-start-request"   { value 116; }
+                enum "mbms-session-start-response"  { value 117; }
+                enum "mbms-session-stop-request"    { value 118; }
+                enum "mbms-session-stop-response"   { value 119; }
+                enum "mbms-session-update-request"  { value 120; }
+                enum "mbms-session-update-response" { value 121; }
+                enum "ms-info-change-notification-request" { value 128; }
+                enum "ms-info-change-notification-response" { value 129; }
+                enum "data-record-transfer-request" { value 240; }
+                enum "data-record-transfer-response" { value 241; }
+                enum "end-marker"                   { value 254; }
+                enum "g-pdu"                        { value 255; }
+            }
+        }
+        description "GPRS Tunneling Protocol (GTP) message value, defined in '3GPP, TS 29.060. V7.9.0'";
+    }
+
+}

@@ -1,0 +1,241 @@
+submodule nokia-state-card-fp {
+
+    yang-version "1.1";
+
+    belongs-to nokia-state { prefix "state"; }
+
+    import ietf-yang-types                { prefix "yang"; }
+    import nokia-sros-yang-extensions     { prefix "sros-ext"; }
+    import nokia-types-card               { prefix "types-card"; }
+
+
+    sros-ext:sros-major-release "rel16";
+
+    organization "Nokia";
+
+    contact
+        "Nokia SR OS Support
+         Web: <http://www.nokia.com>";
+
+    description
+        "Nokia YANG Data model with operational state for card forwarding plane on SR OS based routers.
+
+         Copyright 2016 Nokia. All rights reserved. Reproduction of this document
+         is authorized on the condition that the foregoing copyright notice is included.
+
+         This nokia-state-card-fp YANG module embodies Nokia's proprietary
+         intellectual property. Nokia retains all title and ownership in the
+         specification, including any revisions.
+
+         Nokia grants all interested parties a non-exclusive license to use
+         and distribute an unmodified copy of this specification in connection with
+         management of Nokia products, and without fee, provided this
+         copyright notice and license appear on all copies.
+
+         This specification is supplied `as is', and Nokia makes no warranty,
+         either express or implied, as to the use, operation, condition, or performance
+         of the specification.";
+
+    revision "2019-05-22";
+
+    grouping state-card-fp {
+        list fp {
+            key "fp-number";
+            description "Enter the fp context";
+
+            leaf fp-number {
+                type uint32 {
+                    range "1..8";
+                }
+                description "Forwarding plane within a specific IOM card";
+            }
+
+            leaf total-policy-accounting-in-use {
+                type uint32;
+                description "Indicates the total number of statistics resources currently in use.";
+            }
+
+            leaf generation {
+                type types-card:fp-generation;
+                description "Indicates the generation of the FP network processor.";
+            }
+
+            container hi-bw-mcast-src {
+                description "Enter the hi-bw-mcast-src context";
+
+                leaf tap-count {
+                    type uint32;
+                    description
+                        "Indicates the number of high bandwidth multicast traffic taps
+                         on this forwarding plane.";
+                }
+
+            } // container hi-bw-mcast-src
+
+            container ingress {
+                description "Enter the ingress context";
+
+                container mcast-path-management {
+                    description "Enter the mcast-path-management context";
+
+                    leaf primary-in-use-bandwidth {
+                        type uint32;
+                        units "kilobps";
+                        description
+                            "Indicates the in use ingress multicast bandwidth for the primary
+                             forwarding path.";
+                    }
+
+                    leaf secondary-in-use-bandwidth {
+                        type uint32;
+                        units "kilobps";
+                        description
+                            "Indicates the in use ingress multicast bandwidth for the secondary
+                             forwarding path.";
+                    }
+
+                    leaf blackhole-in-use-bandwidth {
+                        type uint32;
+                        units "kilobps";
+                        description
+                            "Indicates the bandwidth of the ingress multicast traffic that
+                             is being black holed on the forwarding plane.";
+                    }
+
+                } // container mcast-path-management
+
+            } // container ingress
+
+            container statistics {
+                description "The container of IOM forwarding plane statistics.";
+
+                leaf ingress-fcs-error {
+                    type yang:counter32;
+                    description
+                        "Indicates the number of times the complex experienced a FCS
+                         error in the ingress direction since startup, last clear,
+                         or card reboot.";
+                }
+
+                leaf ingress-fcs-error-time {
+                    type yang:date-and-time;
+                    description "Indicates the last time ingress-fcs-error incremented.";
+                }
+
+                leaf egress-fcs-error {
+                    type yang:counter32;
+                    description
+                        "Indicates the number of times the complex experienced a FCS
+                         error in the egress direction since startup, last clear, or
+                         card reboot.";
+                }
+
+                leaf egress-fcs-error-time {
+                    type yang:date-and-time;
+                    description "Indicates the last time egress-fcs-error incremented.";
+                }
+
+                leaf memory-parity-error {
+                    type yang:counter32;
+                    description
+                        "Indicates the number of times the complex experienced a memory
+                         parity error since startup, last clear, or card reboot.";
+                }
+
+                leaf memory-parity-error-time {
+                    type yang:date-and-time;
+                    description "Indicates the last time memory-parity-error incremented.";
+                }
+
+                leaf cam-error {
+                    type yang:counter32;
+                    description
+                        "Indicates the number of times the complex experienced a CAM
+                         error since startup, last clear, or card reboot.";
+                }
+
+                leaf cam-error-time {
+                    type yang:date-and-time;
+                    description "Indicates the last time cam-error incremented.";
+                }
+
+                leaf buffer-memory-error {
+                    type yang:counter32;
+                    description
+                        "Indicates the number of times the complex experienced a buffer
+                         memory error since startup, last clear, or card reboot.";
+                }
+
+                leaf buffer-memory-error-time {
+                    type yang:date-and-time;
+                    description "Indicates the last time buffer-memory-error incremented.";
+                }
+
+                leaf statistics-memory-error {
+                    type yang:counter32;
+                    description
+                        "Indicates the number of times the complex experienced a
+                         statistics memory error since startup, last clear, or card
+                         reboot.";
+                }
+
+                leaf statistics-memory-error-time {
+                    type yang:date-and-time;
+                    description "Indicates the last time statistics-memory-error incremented.";
+                }
+
+                leaf internal-memory-error {
+                    type yang:counter32;
+                    description
+                        "Indicates the number of times the complex experienced an
+                         internal memory error since startup, last clear, or card
+                         reboot.";
+                }
+
+                leaf internal-memory-error-time {
+                    type yang:date-and-time;
+                    description "Indicates the last time internal-memory-error incremented.";
+                }
+
+                leaf internal-datapath-error {
+                    type yang:counter32;
+                    description
+                        "Indicates the number of times the complex experienced an
+                         internal datapath error since startup, last clear, or card
+                         reboot.";
+                }
+
+                leaf internal-datapath-error-time {
+                    type yang:date-and-time;
+                    description "Indicates the last time internal-datapath-error incremented.";
+                }
+
+                leaf internal-datapath-cell-error {
+                    type yang:counter32;
+                    description
+                        "Indicates the number of times the complex experienced an
+                         internal datapath cell error since startup, last clear, or
+                         card reboot.";
+                }
+
+                leaf internal-datapath-cell-error-time {
+                    type yang:date-and-time;
+                    description
+                        "Indicates the last time internal-datapath-cell-error
+                         incremented.";
+                }
+
+                leaf source-slots-egress-fcs-error {
+                    type types-card:card-slot-bitmap;
+                    description
+                        "Indicates the source slots reported from the last time
+                         egress-fcs-error incremented.";
+                }
+
+            } // container statistics
+
+        } // list fp
+
+    } // grouping state-card-fp
+
+}
